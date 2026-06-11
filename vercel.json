@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/hatim",
+      "destination": "/hatim/index.html"
+    },
+    {
+      "source": "/hubspot",
+      "destination": "/hubspot/index.html"
+    },
+    {
+      "source": "/hubspot/spickzettel",
+      "destination": "/hubspot/spickzettel.html"
+    },
+    {
+      "source": "/contentsquare",
+      "destination": "https://assila-athlete.vercel.app/contentsquare"
+    },
+    {
+      "source": "/athlete/:path*",
+      "destination": "https://assila-athlete.vercel.app/athlete/:path*"
+    }
+  ]
+}

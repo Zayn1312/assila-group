@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Spickzettel · Privat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --hs-orange:#FF7A59;--hs-orange-dark:#E8613A;
+  --hs-navy:#2D3E50;--hs-teal:#00BDA5;--hs-teal-dark:#0A9B85;
+  --bg-deep:#0f1822;--bg-card:#1a2733;--bg-card-hover:#213040;
+  --text-primary:#F5F8FA;--text-muted:#8899AA;--text-dim:#5A6B7D;
+  --font-display:'Lexend',sans-serif;--font-body:'Inter',sans-serif;
+  --radius:8px;--radius-lg:14px;--radius-pill:50px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-body);color:var(--text-primary);
+  background:var(--bg-deep);min-height:100vh;line-height:1.6;
+}
+
+/* ── HEADER ── */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(15,24,34,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  padding:10px 20px;display:flex;align-items:center;justify-content:space-between;
+}
+.header-left{font-family:var(--font-display);font-weight:600;font-size:1rem;color:var(--text-muted);letter-spacing:.02em}
+.header-left span{color:var(--hs-orange);font-weight:700}
+.header-right{display:flex;gap:8px;align-items:center}
+
+/* Toggle buttons */
+.toggle-btn{
+  font-family:var(--font-display);font-size:.8rem;font-weight:600;
+  padding:6px 14px;border-radius:var(--radius-pill);cursor:pointer;
+  border:1.5px solid var(--text-dim);color:var(--text-muted);
+  background:transparent;transition:all .2s;user-select:none;
+}
+.toggle-btn:hover{border-color:var(--text-muted);color:var(--text-primary)}
+.toggle-btn.active{border-color:var(--hs-orange);color:var(--hs-orange);background:rgba(255,122,89,.08)}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:6px;padding:14px 20px 0;max-width:960px;margin:0 auto;
+}
+.tab-btn{
+  flex:1;font-family:var(--font-display);font-size:.95rem;font-weight:600;
+  padding:12px 10px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  border:none;cursor:pointer;transition:all .25s;
+  background:var(--bg-card);color:var(--text-muted);
+  border-bottom:3px solid transparent;position:relative;
+}
+.tab-btn:hover{color:var(--text-primary);background:var(--bg-card-hover)}
+.tab-btn.active{color:var(--hs-orange);background:var(--bg-card-hover);border-bottom-color:var(--hs-orange)}
+.tab-label{display:block;font-size:.72rem;font-weight:400;color:var(--text-dim);margin-top:2px}
+.tab-btn.active .tab-label{color:var(--text-muted)}
+
+/* ── FOCUS CARD ── */
+.cards-area{max-width:960px;margin:0 auto;padding:0 20px 40px}
+.focus-card{
+  display:none;background:var(--bg-card);border-radius:0 0 var(--radius-lg) var(--radius-lg);
+  padding:28px 28px 0;position:relative;
+  border:1px solid rgba(255,255,255,.04);border-top:none;
+}
+.focus-card.active{display:block;animation:fadeCard .25s ease}
+@keyframes fadeCard{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Timer */
+.timer-wrap{position:absolute;top:16px;right:20px;display:flex;align-items:center;gap:6px}
+.timer-display{
+  font-family:var(--font-display);font-size:.95rem;font-weight:600;
+  color:var(--text-dim);min-width:42px;text-align:right;
+}
+.timer-display.warn{color:var(--hs-orange)}
+.timer-display.over{color:#EF4444}
+.timer-btn{
+  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--text-dim);
+  background:transparent;color:var(--text-dim);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;
+  transition:all .2s;
+}
+.timer-btn:hover{border-color:var(--hs-orange);color:var(--hs-orange)}
+.timer-btn.running{border-color:var(--hs-orange);color:var(--hs-orange);background:rgba(255,122,89,.1)}
+
+/* Attribute badge */
+.attr-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.attr-badge{
+  font-family:var(--font-display);font-size:.78rem;font-weight:600;
+  padding:5px 14px;border-radius:var(--radius-pill);
+  border:1.5px solid var(--hs-teal);color:var(--hs-teal);
+  background:rgba(0,189,165,.06);
+}
+
+/* Question line */
+.question-line{
+  font-size:.85rem;color:var(--text-dim);margin-bottom:16px;
+  font-style:italic;line-height:1.4;padding-right:100px;
+}
+
+/* Killer-Zahlen */
+.killer-zahlen{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.killer-pill{
+  font-family:var(--font-display);font-size:1.05rem;font-weight:700;
+  padding:7px 18px;border-radius:var(--radius-pill);
+  background:rgba(255,122,89,.12);color:var(--hs-orange);
+  border:1.5px solid rgba(255,122,89,.25);white-space:nowrap;
+}
+
+/* STAR rows */
+.star-block{margin-bottom:20px}
+.star-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.star-label{
+  font-family:var(--font-display);font-weight:700;font-size:.82rem;
+  min-width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+.star-label.s-label{background:var(--hs-navy);color:var(--text-primary);border:1px solid #3a5060}
+.star-label.t-label{background:rgba(0,189,165,.15);color:var(--hs-teal);border:1px solid rgba(0,189,165,.3)}
+.star-label.a-label{background:rgba(255,122,89,.12);color:var(--hs-orange);border:1px solid rgba(255,122,89,.25)}
+.star-label.r-label{background:rgba(10,155,133,.15);color:var(--hs-teal-dark);border:1px solid rgba(10,155,133,.3)}
+.star-text{font-size:1.05rem;line-height:1.55;color:var(--text-primary)}
+.star-text strong{color:var(--hs-orange);font-weight:600}
+
+/* Volltext */
+.volltext{
+  display:none;font-size:1.02rem;line-height:1.7;color:var(--text-primary);
+  padding:4px 0 8px;
+}
+.volltext p{margin-bottom:14px}
+.volltext strong{color:var(--hs-orange);font-weight:600}
+body.mode-volltext .star-block{display:none}
+body.mode-volltext .volltext{display:block}
+
+/* MUST SAY */
+.must-say{
+  margin:0 -28px;padding:16px 28px;
+  background:linear-gradient(135deg,var(--hs-orange),var(--hs-orange-dark));
+  color:var(--hs-navy);font-family:var(--font-display);
+  font-size:1.1rem;font-weight:700;line-height:1.45;
+  border-radius:0 0 var(--radius-lg) var(--radius-lg);
+}
+.must-say-label{
+  font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  opacity:.7;margin-bottom:4px;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .tabs{padding:10px 12px 0;gap:4px}
+  .tab-btn{font-size:.82rem;padding:10px 6px}
+  .tab-label{font-size:.65rem}
+  .focus-card{padding:20px 16px 0}
+  .must-say{margin:0 -16px;padding:14px 16px;font-size:1rem}
+  .killer-pill{font-size:.92rem;padding:6px 13px}
+  .star-text{font-size:.97rem}
+  .question-line{padding-right:80px}
+  .timer-wrap{top:12px;right:12px}
+  .header{padding:8px 12px}
+}
+@media(max-width:380px){
+  .killer-pill{font-size:.85rem;padding:5px 10px}
+  .star-text{font-size:.92rem}
+  .tab-btn{font-size:.75rem;padding:8px 4px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-left"><span>Spickzettel</span> · Privat</div>
+  <div class="header-right">
+    <button class="toggle-btn active" id="btnDE" onclick="setLang('de')">DE</button>
+    <button class="toggle-btn" id="btnEN" onclick="setLang('en')">EN</button>
+    <button class="toggle-btn active" id="btnKeyword" onclick="setMode('keyword')">Stichpunkte</button>
+    <button class="toggle-btn" id="btnVolltext" onclick="setMode('volltext')">Volltext</button>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showCard(0,this)">
+    Q1 · Challenge
+    <span class="tab-label" data-de="Hindernis" data-en="Obstacle">Hindernis</span>
+  </button>
+  <button class="tab-btn" onclick="showCard(1,this)">
+    Q2 · Deal
+    <span class="tab-label" data-de="High-Value" data-en="High-Value">High-Value</span>
+  </button>
+  <button class="tab-btn" onclick="showCard(2,this)">
+    Q3 · Growth
+    <span class="tab-label" data-de="Entwicklung" data-en="Development">Entwicklung</span>
+  </button>
+</div>
+
+<!-- ── CARDS ── -->
+<div class="cards-area">
+
+<!-- ═══════ Q1 — Challenge ═══════ -->
+<div class="focus-card active" id="card0">
+  <div class="timer-wrap">
+    <div class="timer-display" id="timer0">1:30</div>
+    <button class="timer-btn" id="timerBtn0" onclick="toggleTimer(0)" title="Start / Reset">&#9654;</button>
+  </div>
+
+  <div class="attr-badges">
+    <span class="attr-badge">Mission Driven</span>
+  </div>
+
+  <div class="question-line" data-de="Erzähle von einer signifikanten Herausforderung oder einem Hindernis, das du überwinden musstest." data-en="Tell me about a significant challenge or obstacle you had to overcome.">Erzähle von einer signifikanten Herausforderung oder einem Hindernis, das du überwinden musstest.</div>
+
+  <div class="killer-zahlen">
+    <span class="killer-pill">$500K Deal</span>
+    <span class="killer-pill">1. Oracle DB @ Google Cloud DE</span>
+    <span class="killer-pill">$50K Recovery · 0 Quota</span>
+  </div>
+
+  <div class="star-block">
+    <div class="star-row">
+      <div class="star-label s-label">S</div>
+      <div class="star-text" data-de="<strong>$500K-Deal</strong> mit großem Discounter · erster Oracle DB @ Google Cloud in DE · viele Termine in Dortmund" data-en="<strong>$500K deal</strong>, major discounter · first Oracle DB @ Google Cloud in Germany · lots of on-site work in Dortmund">
+        <strong>$500K-Deal</strong> mit großem Discounter · erster Oracle DB @ Google Cloud in DE · viele Termine in Dortmund
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label t-label">T</div>
+      <div class="star-text" data-de="CIO sagt <strong>KOMPLETT ab</strong> (keine Verschiebung) · danach Territory-Wechsel → Account weg" data-en="CIO killed it <strong>OUTRIGHT</strong> (not postponed) · then territory change → account gone">
+        CIO sagt <strong>KOMPLETT ab</strong> (keine Verschiebung) · danach Territory-Wechsel → Account weg
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label a-label">A</div>
+      <div class="star-text" data-de="Ehrliches <strong>Post-Mortem</strong> (Einkauf ≠ Entscheidung, Decision-Path bis CIO absichern) · trotzdem im neuen FY <strong>$50K Paid-Demo</strong> geclosed — null Quota für mich" data-en="Honest self <strong>post-mortem</strong> (procurement ≠ decision; validate decision path to CIO) · still closed a <strong>$50K paid-demo</strong> in the new FY — zero quota for me">
+        Ehrliches <strong>Post-Mortem</strong> (Einkauf ≠ Entscheidung, Decision-Path bis CIO absichern) · trotzdem im neuen FY <strong>$50K Paid-Demo</strong> geclosed — null Quota für mich
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label r-label">R</div>
+      <div class="star-text" data-de="Ergebnis fürs <strong>Team</strong> + bessere Startposition für Nachfolger" data-en="A result for the <strong>team</strong> + far better starting position for my successor">
+        Ergebnis fürs <strong>Team</strong> + bessere Startposition für Nachfolger
+      </div>
+    </div>
+  </div>
+
+  <div class="volltext" data-de="<p>Ich hatte einen <strong>$500K-Deal</strong> mit einem großen deutschen Discounter aufgebaut — die erste Oracle-Datenbank auf Google Cloud in Deutschland. Ich war regelmäßig vor Ort in Dortmund, hatte starke Champions im mittleren Management, und wir waren tief im Evaluierungsprozess.</p><p>Dann hat der <strong>CIO den Deal komplett gekillt</strong> — nicht verschoben, sondern abgesagt. Kurz danach wurde mein Territory gewechselt, und der Account ging an jemand anderen.</p><p>Ich habe ein <strong>ehrliches Post-Mortem</strong> gemacht: Mein Fehler war, dass ich den Entscheidungspfad zum CIO nicht früh genug abgesichert hatte. Einkauf war nicht gleich Entscheidung. Trotzdem habe ich im neuen Fiskaljahr noch eine <strong>$50K Paid-Demo geclosed</strong> — obwohl ich null Quota dafür bekam. Der Account war nicht mehr meiner, aber das Ergebnis war wichtig fürs Team.</p><p>Das Resultat: ein besserer Starting Point für meinen Nachfolger und ein Team-Ergebnis statt gar keins.</p>" data-en="<p>I had built up a <strong>$500K deal</strong> with a major German discounter — the first Oracle database on Google Cloud in Germany. I was on-site in Dortmund regularly, had strong mid-level champions, and we were deep in the evaluation process.</p><p>Then the <strong>CIO killed the deal outright</strong> — not postponed, cancelled. Shortly after, my territory changed and the account went to someone else.</p><p>I ran an <strong>honest self post-mortem</strong>: my mistake was not validating the decision path to the CIO early enough. Procurement wasn't the same as the decision-maker. But I still closed a <strong>$50K paid demo</strong> in the new fiscal year — zero quota credit for me. The account was no longer mine, but the result mattered for the team.</p><p>The outcome: a far better starting position for my successor and a team result instead of nothing.</p>">
+  </div>
+
+  <div class="must-say">
+    <div class="must-say-label">MUST SAY</div>
+    <span data-de="„Company first heißt: du lieferst, auch wenn es für dich persönlich nicht mehr zählt."" data-en=""Company first means you deliver even when it no longer counts for you personally."">„Company first heißt: du lieferst, auch wenn es für dich persönlich nicht mehr zählt."</span>
+  </div>
+</div>
+
+<!-- ═══════ Q2 — High-Value Deal ═══════ -->
+<div class="focus-card" id="card1">
+  <div class="timer-wrap">
+    <div class="timer-display" id="timer1">1:30</div>
+    <button class="timer-btn" id="timerBtn1" onclick="toggleTimer(1)" title="Start / Reset">&#9654;</button>
+  </div>
+
+  <div class="attr-badges">
+    <span class="attr-badge">Willing to Take Risks</span>
+    <span class="attr-badge">Want to Win</span>
+  </div>
+
+  <div class="question-line" data-de="Erzähle von einem High-Value-Deal, den du abgeschlossen hast." data-en="Tell me about a high-value deal you closed.">Erzähle von einem High-Value-Deal, den du abgeschlossen hast.</div>
+
+  <div class="killer-zahlen">
+    <span class="killer-pill">28 TB Migration</span>
+    <span class="killer-pill">Go-live Juni 2021</span>
+    <span class="killer-pill">Größter Cloud-Deal DE</span>
+    <span class="killer-pill">2.500% Growth · Oracle Award FY22</span>
+  </div>
+
+  <div class="star-block">
+    <div class="star-row">
+      <div class="star-label s-label">S</div>
+      <div class="star-text" data-de="<strong>Deichmann</strong> · der Account, den <strong>KEINER</strong> wollte · mitten in Corona · konservatives Familienunternehmen" data-en="<strong>Deichmann</strong> · the account <strong>NOBODY</strong> wanted · mid-Corona · conservative family business">
+        <strong>Deichmann</strong> · der Account, den <strong>KEINER</strong> wollte · mitten in Corona · konservatives Familienunternehmen
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label t-label">T</div>
+      <div class="star-text" data-de="<strong>28 TB</strong> Data Warehouse migrieren · risikoscheuer Kunde · kompletter Führungswechsel" data-en="Migrate <strong>28 TB</strong> data warehouse · risk-averse customer · full leadership change">
+        <strong>28 TB</strong> Data Warehouse migrieren · risikoscheuer Kunde · kompletter Führungswechsel
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label a-label">A</div>
+      <div class="star-text" data-de="Mutige Wette — <strong>Chance statt Strafe</strong> · Multi-Threading: Woltering (BI = Champion) + CIO Canisius (strategisch) · PoC entschärft Migrationsrisiko · <strong>12-Monats-Prozess</strong> aktiv gesteuert" data-en="Bold bet — <strong>opportunity, not punishment</strong> · multi-threading: Woltering (BI = champion) + CIO Canisius (strategic) · PoC de-risks migration · drove the <strong>12-month process</strong> actively">
+        Mutige Wette — <strong>Chance statt Strafe</strong> · Multi-Threading: Woltering (BI = Champion) + CIO Canisius (strategisch) · PoC entschärft Migrationsrisiko · <strong>12-Monats-Prozess</strong> aktiv gesteuert
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label r-label">R</div>
+      <div class="star-text" data-de="Go-live Juni 2021 · Batch <strong>2,5h schneller</strong> · größter Cloud-Deal Deutschlands · <strong>Oracle Award FY22</strong> · <strong>2.500%</strong>" data-en="Go-live June 2021 · batch <strong>2.5h faster</strong> · biggest cloud deal in Germany · <strong>Oracle FY22 award</strong> · <strong>2,500%</strong>">
+        Go-live Juni 2021 · Batch <strong>2,5h schneller</strong> · größter Cloud-Deal Deutschlands · <strong>Oracle Award FY22</strong> · <strong>2.500%</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="volltext" data-de="<p><strong>Deichmann</strong> — das war der Account, den absolut keiner im Team haben wollte. Konservatives Familienunternehmen, risikoscheuer IT-Bereich, und das Ganze mitten in Corona. Ich habe ihn trotzdem genommen, weil ich die Chance gesehen habe.</p><p>Die Aufgabe: ein <strong>28 Terabyte Data Warehouse</strong> in die Cloud migrieren. Dazu kam ein kompletter Führungswechsel beim Kunden während des Prozesses.</p><p>Meine Strategie: <strong>Multi-Threading</strong>. Ich habe Herrn Woltering als BI-Champion aufgebaut — er kannte den Pain am besten. Parallel habe ich CIO Canisius auf der strategischen Ebene eingebunden. Ein <strong>Proof of Concept</strong> hat das Migrationsrisiko entschärft und dem risikoscheuen Kunden die Sicherheit gegeben, die er brauchte. Den 12-monatigen Sales-Prozess habe ich von Anfang bis Ende aktiv gesteuert.</p><p>Ergebnis: <strong>Go-live im Juni 2021</strong>. Die Batch-Verarbeitung war 2,5 Stunden schneller als vorher. Es wurde der <strong>größte Cloud-Deal in ganz Deutschland</strong>. Ich habe den <strong>Oracle Award im FY22</strong> dafür bekommen — und mein Account ist um <strong>2.500 Prozent</strong> gewachsen.</p>" data-en="<p><strong>Deichmann</strong> — the account absolutely nobody on the team wanted. Conservative family business, risk-averse IT department, and all of this in the middle of Covid. I took it anyway because I saw the opportunity.</p><p>The challenge: migrating a <strong>28 terabyte data warehouse</strong> to the cloud. On top of that, there was a complete leadership change at the customer during the process.</p><p>My approach: <strong>multi-threading</strong>. I built up Mr. Woltering as my BI champion — he understood the pain best. In parallel, I engaged CIO Canisius on the strategic level. A <strong>proof of concept</strong> de-risked the migration and gave the risk-averse customer the confidence they needed. I actively drove the entire 12-month sales process from start to finish.</p><p>Result: <strong>Go-live in June 2021</strong>. Batch processing was 2.5 hours faster than before. It became the <strong>biggest cloud deal in all of Germany</strong>. I received the <strong>Oracle FY22 award</strong> for it — and my account grew by <strong>2,500 percent</strong>.</p>">
+  </div>
+
+  <div class="must-say">
+    <div class="must-say-label">MUST SAY</div>
+    <span data-de="„Ich habe den Account genommen, von dem alle abgeraten haben." → mit der 2.500%-Zahl abschließen." data-en=""I took the account everyone advised against." → close on the 2,500% number.">„Ich habe den Account genommen, von dem alle abgeraten haben." → mit der 2.500%-Zahl abschließen.</span>
+  </div>
+</div>
+
+<!-- ═══════ Q3 — Growth ═══════ -->
+<div class="focus-card" id="card2">
+  <div class="timer-wrap">
+    <div class="timer-display" id="timer2">1:30</div>
+    <button class="timer-btn" id="timerBtn2" onclick="toggleTimer(2)" title="Start / Reset">&#9654;</button>
+  </div>
+
+  <div class="attr-badges">
+    <span class="attr-badge">Hungry for Growth</span>
+    <span class="attr-badge">Bias for Action</span>
+  </div>
+
+  <div class="question-line" data-de="Wie entwickelst du kontinuierlich deine Fähigkeiten und dein Wissen weiter?" data-en="How do you continuously develop your skills and knowledge?">Wie entwickelst du kontinuierlich deine Fähigkeiten und dein Wissen weiter?</div>
+
+  <div class="killer-zahlen">
+    <span class="killer-pill">AI-Sales-Prozess selbst gebaut</span>
+    <span class="killer-pill">React · Python · Docker · LLMs</span>
+  </div>
+
+  <div class="star-block">
+    <div class="star-row">
+      <div class="star-label s-label">S</div>
+      <div class="star-text" data-de="Zwei Richtungen gleichzeitig — <strong>schärfer als Seller</strong> + <strong>tiefer technisch</strong>" data-en="Two directions at once — <strong>sharper seller</strong> + <strong>deeper technically</strong>">
+        Zwei Richtungen gleichzeitig — <strong>schärfer als Seller</strong> + <strong>tiefer technisch</strong>
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label t-label">T</div>
+      <div class="star-text" data-de="(Siehe Action — S/T sind hier zusammen)" data-en="(See Action — S/T combined here)">
+        (Siehe Action — S/T sind hier zusammen)
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label a-label">A</div>
+      <div class="star-text" data-de="<strong>Humble:</strong> Linkfluence — Manager-Feedback „hör auf zu allem Ja zu sagen" → umgesetzt, radikal priorisiert → Enterprise-Deals · Loop bis heute: nach jedem Lost Deal <strong>Post-Mortem + 1 konkrete Änderung</strong><br><br><strong>Curious:</strong> mit SE einen <strong>AI-gestützten Sales-Prozess</strong> gebaut (ich Business Value, sie tech Eval → Prompt screent Workloads &amp; Leads automatisch) · Side-Projects: React / Python / Docker / LLMs" data-en="<strong>Humble:</strong> Linkfluence — manager feedback "stop saying yes to everything" → acted on it, prioritised ruthlessly → enterprise deals · still run the loop: <strong>post-mortem + 1 change</strong> per lost deal<br><br><strong>Curious:</strong> built an <strong>AI-assisted sales process</strong> with my SE (I = business value, she = tech eval → prompt auto-screens workloads &amp; leads) · side projects: React / Python / Docker / LLMs">
+        <strong>Humble:</strong> Linkfluence — Manager-Feedback „hör auf zu allem Ja zu sagen" → umgesetzt, radikal priorisiert → Enterprise-Deals · Loop bis heute: nach jedem Lost Deal <strong>Post-Mortem + 1 konkrete Änderung</strong><br><br><strong>Curious:</strong> mit SE einen <strong>AI-gestützten Sales-Prozess</strong> gebaut (ich Business Value, sie tech Eval → Prompt screent Workloads &amp; Leads automatisch) · Side-Projects: React / Python / Docker / LLMs
+      </div>
+    </div>
+    <div class="star-row">
+      <div class="star-label r-label">R</div>
+      <div class="star-text" data-de="Neugier (Technik) + Demut (Feedback) = <strong>derselbe Muskel</strong> → Plattform ehrlich verkaufen" data-en="Curiosity (tech) + humility (feedback) = <strong>same muscle</strong> → sell a platform honestly">
+        Neugier (Technik) + Demut (Feedback) = <strong>derselbe Muskel</strong> → Plattform ehrlich verkaufen
+      </div>
+    </div>
+  </div>
+
+  <div class="volltext" data-de="<p>Ich entwickle mich <strong>in zwei Richtungen gleichzeitig</strong> weiter: schärfer als Seller und tiefer technisch.</p><p>Zum Thema <strong>Demut</strong>: Bei Linkfluence hat mir mein Manager gesagt: „Hör auf, zu allem Ja zu sagen." Das war ein Punkt, an dem ich kurz schlucken musste — aber er hatte Recht. Ich habe das direkt umgesetzt, radikal priorisiert und konnte dadurch Enterprise-Deals fokussieren und schließen. Diesen Loop fahre ich bis heute: nach jedem Lost Deal mache ich ein <strong>Post-Mortem und definiere eine konkrete Änderung</strong>.</p><p>Zum Thema <strong>Neugier</strong>: Ich habe zusammen mit meiner SE einen <strong>AI-gestützten Sales-Prozess</strong> gebaut. Ich bringe den Business Value ein, sie die technische Evaluation — und ein Prompt screent automatisch Workloads und Leads. Dazu kommen Side-Projects in <strong>React, Python, Docker und LLMs</strong>, weil ich verstehen will, was ich verkaufe.</p><p>Das Ergebnis: Neugier und Demut sind für mich <strong>derselbe Muskel</strong>. Beides zusammen macht mich zu jemandem, der eine Plattform ehrlich verkaufen kann — weil er sie versteht und weil er sich selbst hinterfragt.</p>" data-en="<p>I develop myself <strong>in two directions simultaneously</strong>: sharper as a seller and deeper technically.</p><p>On <strong>humility</strong>: At Linkfluence, my manager told me to stop saying yes to everything. That was a moment where I had to swallow my pride — but he was right. I acted on it immediately, prioritised ruthlessly, and was able to focus on and close enterprise deals. I still run this loop today: after every lost deal, I do a <strong>post-mortem and define one concrete change</strong>.</p><p>On <strong>curiosity</strong>: I built an <strong>AI-assisted sales process</strong> together with my SE. I bring the business value, she brings the technical evaluation — and a prompt automatically screens workloads and leads. On top of that, I have side projects in <strong>React, Python, Docker, and LLMs</strong>, because I want to understand what I'm selling.</p><p>The result: curiosity and humility are <strong>the same muscle</strong> for me. Both together make me someone who can sell a platform honestly — because he understands it and because he questions himself.</p>">
+  </div>
+
+  <div class="must-say">
+    <div class="must-say-label">MUST SAY</div>
+    <span data-de="Beides landen — Feedback annehmen UND selber bauen." data-en="Land both — taking feedback AND building things yourself.">Beides landen — Feedback annehmen UND selber bauen.</span>
+  </div>
+</div>
+
+</div><!-- /cards-area -->
+
+<script>
+/* ── State ── */
+let lang = 'de';
+let mode = 'keyword';
+const timers = [null, null, null];
+const timerSecs = [90, 90, 90];
+
+/* ── Tab switching ── */
+function showCard(idx, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.focus-card').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('card' + idx).classList.add('active');
+}
+
+/* ── Language ── */
+function setLang(l) {
+  lang = l;
+  document.getElementById('btnDE').classList.toggle('active', l === 'de');
+  document.getElementById('btnEN').classList.toggle('active', l === 'en');
+  document.querySelectorAll('[data-' + l + ']').forEach(el => {
+    const val = el.getAttribute('data-' + l);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = val;
+    else el.innerHTML = val;
+  });
+}
+
+/* ── Mode (keyword / volltext) ── */
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnKeyword').classList.toggle('active', m === 'keyword');
+  document.getElementById('btnVolltext').classList.toggle('active', m === 'volltext');
+  document.body.classList.toggle('mode-volltext', m === 'volltext');
+}
+
+/* ── Timer ── */
+function toggleTimer(idx) {
+  const btn = document.getElementById('timerBtn' + idx);
+  if (timers[idx]) {
+    clearInterval(timers[idx]);
+    timers[idx] = null;
+    timerSecs[idx] = 90;
+    btn.classList.remove('running');
+    btn.innerHTML = '&#9654;';
+    updateTimerDisplay(idx);
+  } else {
+    btn.classList.add('running');
+    btn.innerHTML = '&#9632;';
+    timers[idx] = setInterval(() => {
+      timerSecs[idx]--;
+      updateTimerDisplay(idx);
+      if (timerSecs[idx] <= 0) {
+        clearInterval(timers[idx]);
+        timers[idx] = null;
+        btn.classList.remove('running');
+        btn.innerHTML = '&#8635;';
+      }
+    }, 1000);
+  }
+}
+
+function updateTimerDisplay(idx) {
+  const el = document.getElementById('timer' + idx);
+  const s = timerSecs[idx];
+  const abs = Math.abs(s);
+  const mins = Math.floor(abs / 60);
+  const secs = abs % 60;
+  const prefix = s < 0 ? '-' : '';
+  el.textContent = prefix + mins + ':' + String(secs).padStart(2, '0');
+  el.classList.toggle('warn', s <= 30 && s > 0);
+  el.classList.toggle('over', s <= 0);
+  if (s <= 0 && timers[idx]) {
+    /* keep counting into negative */
+  }
+}
+</script>
+</body>
+</html>
