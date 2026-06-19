@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Hero from './components/Hero'
 import GlassCard from './components/GlassCard'
 import CreditGrid from './components/CreditGrid'
@@ -6,7 +7,6 @@ import EngagementTimeline from './components/EngagementTimeline'
 import CompetitiveTable from './components/CompetitiveTable'
 import QuoteCard from './components/QuoteCard'
 import CTASection from './components/CTASection'
-import FAQ from './components/FAQ'
 
 export default function GitLabPage() {
   return (
@@ -17,30 +17,39 @@ export default function GitLabPage() {
       {/* ───────── 2. About Me ───────── */}
       <section className="py-16 md:py-24">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="max-w-3xl">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
-              I&apos;m Anouar.
-            </h2>
-            <p className="text-lg text-[#E7E2F0] leading-relaxed mb-4">
-              I&apos;m interviewing for an Account Executive role at GitLab.
-            </p>
-            <p className="text-[#C8C2D4] leading-relaxed mb-6">
-              I sell because I understand what I&apos;m selling. Before
-              applying, I read the Handbook cover to cover. I studied how GitLab
-              ships, how it prices, and how it wins in regulated industries.
-              I&apos;m not here because I want an AE quota&thinsp;&mdash;&thinsp;I&apos;m
-              here because I believe a single DevSecOps platform is the right
-              answer for enterprises like Thales, and I want to be the person
-              who proves it.
-            </p>
-            <a
-              href="https://linkedin.com/in/anouar-assila"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-gitlab text-sm hover:underline"
-            >
-              LinkedIn &rarr;
-            </a>
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            <Image
+              src="/gitlab/anouar.jpg"
+              alt="Anouar Assila"
+              width={120}
+              height={120}
+              className="rounded-2xl flex-shrink-0"
+            />
+            <div className="max-w-3xl">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
+                I&apos;m Anouar.
+              </h2>
+              <p className="text-lg text-[#E7E2F0] leading-relaxed mb-4">
+                I&apos;m interviewing for an Account Executive role at GitLab.
+              </p>
+              <p className="text-[#C8C2D4] leading-relaxed mb-6">
+                I sell because I understand what I&apos;m selling. Before
+                applying, I read the Handbook cover to cover. I studied how GitLab
+                ships, how it prices, and how it wins in regulated industries.
+                I&apos;m not here because I want an AE quota&thinsp;&mdash;&thinsp;I&apos;m
+                here because I believe a single DevSecOps platform is the right
+                answer for enterprises like Thales, and I want to be the person
+                who proves it.
+              </p>
+              <a
+                href="https://www.linkedin.com/in/anouarassila/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-gitlab text-sm hover:underline"
+              >
+                LinkedIn &rarr;
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -62,7 +71,7 @@ export default function GitLabPage() {
             </p>
           </GlassCard>
           <p className="text-[#E7E2F0] mt-6 text-lg">
-            I picked Thales. Here&apos;s why and here&apos;s how.
+            The account they gave me was Thales. Here&apos;s how I&apos;d win it.
           </p>
         </div>
       </section>
@@ -225,10 +234,7 @@ export default function GitLabPage() {
         </div>
       </section>
 
-      {/* ───────── 12. FAQ ───────── */}
-      <FAQ />
-
-      {/* ───────── 13. CTA / Footer ───────── */}
+      {/* ───────── 12. CTA / Footer ───────── */}
       <CTASection />
     </main>
   )

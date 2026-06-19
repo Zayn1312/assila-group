@@ -95,7 +95,7 @@ export default function Hero() {
             href="/assets/anouar-thales-case.pdf"
             className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/15 transition-colors"
           >
-            Download the deck
+            Download deck (PDF)
             <Download className="w-4 h-4" />
           </a>
         </motion.div>

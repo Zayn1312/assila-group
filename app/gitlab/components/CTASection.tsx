@@ -17,7 +17,7 @@ export default function CTASection() {
             className="inline-flex items-center justify-center gap-2 px-10 py-4 bg-white/10 text-white font-semibold text-lg rounded-xl border border-white/20 hover:bg-white/15 transition-colors"
           >
             <Download className="w-5 h-5" />
-            Download the deck
+            Download deck (PDF)
           </a>
         </div>
 
@@ -26,7 +26,7 @@ export default function CTASection() {
             &copy; {new Date().getFullYear()} Anouar Assila
           </p>
           <a
-            href="https://linkedin.com/in/anouar-assila"
+            href="https://www.linkedin.com/in/anouarassila/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#C8C2D4] text-sm hover:text-white transition-colors"
