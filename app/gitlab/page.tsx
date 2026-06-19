@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 import Hero from './components/Hero'
 import GlassCard from './components/GlassCard'
 import CreditGrid from './components/CreditGrid'
