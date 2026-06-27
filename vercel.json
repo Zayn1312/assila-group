@@ -5,6 +5,10 @@
       "destination": "/hatim/index.html"
     },
     {
+      "source": "/todo",
+      "destination": "/todo/index.html"
+    },
+    {
       "source": "/contentsquare",
       "destination": "https://assila-athlete.vercel.app/contentsquare"
     },

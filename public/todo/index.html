@@ -1,0 +1,2526 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MALDITO CITY — TODO TRACKER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ========== RESET & BASE ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #0a0a0a;
+      color: #F5F0E8;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #2d2d2d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C9A84C; }
+
+    /* ========== HEADER — STICKY COUNTDOWN ========== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, #0a0a0a 0%, rgba(10,10,10,0.97) 100%);
+      border-bottom: 1px solid #2d2d2d;
+      padding: 20px 24px 16px;
+      backdrop-filter: blur(12px);
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .logo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      letter-spacing: 6px;
+      color: #999;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .logo-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 3px;
+      color: #C9A84C;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .countdown-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .countdown-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 64px;
+    }
+    .countdown-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      line-height: 1;
+      color: #C9A84C;
+      transition: color 0.3s;
+    }
+    .countdown-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #999;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .countdown-sep {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      color: #2d2d2d;
+      padding-bottom: 16px;
+    }
+    .countdown-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: #999;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    /* Urgency pulsation — under 48h */
+    .header.urgent .countdown-value {
+      animation: urgentPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes urgentPulse {
+      0%, 100% { color: #C9A84C; }
+      50% { color: #8B1A1A; }
+    }
+
+    /* Expired state */
+    .header.expired .countdown-wrap { display: none; }
+    .header.expired .countdown-sub { display: none; }
+    .expired-banner {
+      display: none;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #8B1A1A;
+      letter-spacing: 2px;
+      padding: 8px 0;
+      animation: expiredBlink 2s ease-in-out infinite;
+    }
+    .header.expired .expired-banner { display: block; }
+    @keyframes expiredBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ========== GLOBAL PROGRESS ========== */
+    .progress-section {
+      max-width: 960px;
+      margin: 24px auto 8px;
+      padding: 0 24px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .progress-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: #999;
+    }
+    .progress-stats {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #C9A84C;
+    }
+    .progress-bar-outer {
+      width: 100%;
+      height: 6px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid #2d2d2d;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #C9A84C, #d4b85a);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+    .progress-sub-stats {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #666;
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    /* ========== FILTER BAR ========== */
+    .filter-bar {
+      max-width: 960px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #999;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+    .filter-btn.active { border-color: #C9A84C; color: #C9A84C; background: rgba(201,168,76,0.08); }
+
+    /* ========== TODO LIST ========== */
+    .todo-list {
+      max-width: 960px;
+      margin: 20px auto 120px;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ========== TODO CARD ========== */
+    .todo-card {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-left: 3px solid #C9A84C;
+      border-radius: 3px;
+      overflow: hidden;
+      transition: border-color 0.3s, opacity 0.3s;
+    }
+    .todo-card[data-status="IN ARBEIT"] { border-left-color: #3A6BC4; }
+    .todo-card[data-status="DONE"] { border-left-color: #2A6B3C; opacity: 0.6; }
+    .todo-card[data-status="DONE"]:hover { opacity: 0.85; }
+    .todo-card.hidden { display: none; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #2d2d2d;
+      min-width: 36px;
+      text-align: center;
+      line-height: 1;
+    }
+    .card-title-wrap { flex: 1; min-width: 0; }
+    .card-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #F5F0E8;
+      line-height: 1.3;
+    }
+    .card-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: #999;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #2d2d2d;
+      padding: 1px 7px;
+      border-radius: 2px;
+      letter-spacing: 0.5px;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .assignee-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+    }
+    .assignee-zayn { color: #C9A84C; border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.08); }
+    .assignee-vito { color: #8B4EC9; border-color: rgba(139,78,201,0.3); background: rgba(139,78,201,0.08); }
+    .assignee-beide {
+      background: linear-gradient(90deg, rgba(201,168,76,0.08), rgba(139,78,201,0.08));
+      border-image: linear-gradient(90deg, rgba(201,168,76,0.3), rgba(139,78,201,0.3)) 1;
+      color: #F5F0E8;
+    }
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .status-badge:hover { transform: scale(1.05); }
+    .status-offen { color: #C9A84C; border: 1px solid rgba(201,168,76,0.3); background: rgba(201,168,76,0.08); }
+    .status-arbeit { color: #3A6BC4; border: 1px solid rgba(58,107,196,0.3); background: rgba(58,107,196,0.08); }
+    .status-done { color: #2A6B3C; border: 1px solid rgba(42,107,60,0.3); background: rgba(42,107,60,0.08); }
+
+    /* Card body — collapsible */
+    .card-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+    .todo-card.expanded .card-body { max-height: 8000px; }
+
+    .card-progress {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .card-progress-bar {
+      flex: 1;
+      height: 3px;
+      background: #2d2d2d;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .card-progress-fill {
+      height: 100%;
+      background: #C9A84C;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .todo-card[data-status="IN ARBEIT"] .card-progress-fill { background: #3A6BC4; }
+    .todo-card[data-status="DONE"] .card-progress-fill { background: #2A6B3C; }
+    .card-progress-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .subtask-list { padding: 0 16px 14px; list-style: none; }
+    .subtask-row { border-bottom: 1px solid rgba(45,45,45,0.5); }
+    .subtask-row:last-child { border-bottom: none; }
+    .subtask-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .subtask-check {
+      width: 16px;
+      height: 16px;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    .subtask-item.done .subtask-check {
+      background: #2A6B3C;
+      border-color: #2A6B3C;
+    }
+    .subtask-check-mark {
+      display: none;
+      width: 8px;
+      height: 8px;
+    }
+    .subtask-item.done .subtask-check-mark { display: block; }
+    .subtask-text {
+      font-size: 13px;
+      color: #999;
+      line-height: 1.5;
+      flex: 1;
+      transition: color 0.2s;
+    }
+    .subtask-item.done .subtask-text {
+      text-decoration: line-through;
+      color: #555;
+    }
+    .subtask-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #2d2d2d;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .subtask-info-btn {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #555;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      font-style: italic;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin-top: 1px;
+      line-height: 1;
+    }
+    .subtask-info-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+    .subtask-info-btn.has-notes { border-color: #C9A84C; color: #C9A84C; background: rgba(201,168,76,0.08); }
+    .subtask-copy-btn {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin-top: 1px;
+      padding: 0;
+    }
+    .subtask-copy-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+    .subtask-copy-btn.copied { border-color: #2A6B3C; color: #2A6B3C; }
+    .subtask-notes {
+      display: none;
+      margin: 4px 0 8px 36px;
+      position: relative;
+    }
+    .subtask-notes.open { display: block; }
+    .subtask-notes textarea {
+      width: 100%;
+      min-height: 70px;
+      padding: 10px 12px;
+      background: #0a0a0a;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      color: #F5F0E8;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .subtask-notes textarea:focus { border-color: #C9A84C; }
+    .subtask-notes-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #333;
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    /* Collapse toggle indicator */
+    .collapse-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 16px;
+      cursor: pointer;
+    }
+    .collapse-arrow {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid #2d2d2d;
+      transition: transform 0.3s;
+    }
+    .todo-card.expanded .collapse-arrow { transform: rotate(180deg); }
+
+    /* ========== ADD BUTTON ========== */
+    .add-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1px solid #C9A84C;
+      background: #1a1a1a;
+      color: #C9A84C;
+      font-size: 28px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 50;
+      line-height: 1;
+    }
+    .add-btn:hover {
+      background: #C9A84C;
+      color: #0a0a0a;
+      transform: scale(1.08);
+    }
+
+    /* Export button */
+    .export-btn {
+      position: fixed;
+      bottom: 28px;
+      left: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #666;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+    .export-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 4px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px;
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: #C9A84C;
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0a0a0a;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      color: #F5F0E8;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #C9A84C; }
+    .form-select { cursor: pointer; }
+    .form-select option { background: #1a1a1a; }
+    .form-textarea {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.8;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .btn-primary {
+      flex: 1;
+      padding: 10px;
+      background: #C9A84C;
+      color: #0a0a0a;
+      border: none;
+      border-radius: 2px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { background: #d4b85a; }
+    .btn-secondary {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      color: #999;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: #999; color: #F5F0E8; }
+
+    /* ========== RESET MODAL ========== */
+    .reset-modal .modal {
+      max-width: 380px;
+      text-align: center;
+    }
+    .reset-modal .modal-title { color: #8B1A1A; }
+    .reset-warning {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .btn-danger {
+      flex: 1;
+      padding: 10px;
+      background: #8B1A1A;
+      color: #F5F0E8;
+      border: none;
+      border-radius: 2px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-danger:hover { background: #a52020; }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(0deg, #0a0a0a 0%, rgba(10,10,10,0.95) 100%);
+      border-top: 1px solid #2d2d2d;
+      padding: 8px 24px;
+      text-align: center;
+      z-index: 40;
+    }
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #2d2d2d;
+      letter-spacing: 2px;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* ========== DELETE TODO BUTTON ========== */
+    .delete-todo-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #555;
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 2px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: auto;
+    }
+    .delete-todo-btn:hover {
+      color: #8B1A1A;
+      border-color: #8B1A1A;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 640px) {
+      .countdown-value { font-size: 32px; }
+      .countdown-unit { min-width: 48px; }
+      .countdown-sep { font-size: 28px; }
+      .card-header { flex-wrap: wrap; gap: 8px; padding: 12px; }
+      .card-meta { width: 100%; justify-content: flex-end; }
+      .card-number { font-size: 22px; min-width: 28px; }
+      .card-title { font-size: 14px; }
+      .subtask-list { padding: 0 12px 12px; }
+      .modal { padding: 20px; }
+      .filter-bar { gap: 6px; }
+      .filter-btn { font-size: 10px; padding: 4px 10px; }
+    }
+    /* ========== EDIT TODO BUTTON ========== */
+    .edit-todo-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #555;
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 2px 8px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .edit-todo-btn:hover { color: #C9A84C; border-color: #C9A84C; }
+    .delete-todo-btn { margin-left: 0; }
+
+    /* ========== SUBTASK EDIT / DELETE / ADD ========== */
+    .subtask-edit-btn, .subtask-del-btn {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #555;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      margin-top: 1px;
+      padding: 0;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .subtask-edit-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+    .subtask-del-btn:hover  { border-color: #8B1A1A; color: #8B1A1A; }
+    .subtask-text-input {
+      flex: 1;
+      background: #0a0a0a;
+      border: 1px solid #C9A84C;
+      border-radius: 2px;
+      color: #F5F0E8;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 4px 8px;
+      outline: none;
+    }
+    .subtask-add-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0 2px;
+    }
+    .subtask-add-input {
+      flex: 1;
+      background: #0a0a0a;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      color: #F5F0E8;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 6px 10px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .subtask-add-input:focus { border-color: #C9A84C; }
+    .subtask-add-btn {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: #C9A84C;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .subtask-add-btn:hover { background: #C9A84C; color: #0a0a0a; }
+
+    /* Auto-status badge (no manual cycle) */
+    .status-badge.auto { cursor: default; }
+    .status-badge.auto:hover { transform: none; }
+
+    /* ========== IMPORT BUTTON ========== */
+    .import-btn {
+      position: fixed;
+      bottom: 64px;
+      left: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border: 1px solid #2d2d2d;
+      background: transparent;
+      color: #666;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+    .import-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+
+    /* ========== COMPACT + GRID (anti endless-scroll) ========== */
+    .header { padding: 12px 24px 10px; }
+    .logo-text { font-size: 12px; margin-bottom: 2px; }
+    .logo-title { font-size: 24px; margin-bottom: 10px; }
+    .countdown-wrap { gap: 5px; margin-bottom: 2px; }
+    .countdown-value { font-size: 30px; }
+    .countdown-sep { font-size: 22px; padding-bottom: 10px; }
+    .countdown-unit { min-width: 50px; }
+    .countdown-label { font-size: 9px; margin-top: 1px; }
+    .countdown-sub { font-size: 10px; }
+    .progress-section { margin: 16px auto 4px; }
+    .filter-bar { margin-top: 12px; }
+
+    /* single column, slim rows (calm) */
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px auto 110px;
+    }
+
+    /* slim collapsed cards */
+    .card-header { padding: 9px 12px; gap: 10px; }
+    .card-number { font-size: 20px; min-width: 24px; }
+    .card-meta { gap: 7px; }
+    .edit-todo-btn, .delete-todo-btn { padding: 2px 6px; }
+    /* tags only when expanded -> short collapsed height */
+    .todo-card:not(.expanded) .card-tags { display: none; }
+    .todo-card:not(.expanded) .card-title {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    /* collapsed card = just the header row, flat (no empty arrow strip) */
+    .todo-card:not(.expanded) .collapse-toggle { display: none; }
+    .collapse-toggle { padding: 6px 16px; }
+
+    /* expand hint chevron in the header */
+    .card-header { position: relative; }
+    .card-header::after {
+      content: '';
+      width: 7px; height: 7px;
+      border-right: 1.5px solid #4a4a4a;
+      border-bottom: 1.5px solid #4a4a4a;
+      transform: rotate(45deg);
+      margin-left: 2px;
+      flex-shrink: 0;
+      transition: transform 0.3s, border-color 0.2s;
+    }
+    .todo-card.expanded .card-header::after { transform: rotate(225deg); }
+    .card-header:hover::after { border-color: #C9A84C; }
+
+    /* ===== FOOTER with Import/Export inside ===== */
+    .footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+    }
+    .footer-text {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .footer .export-btn, .footer .import-btn {
+      position: static;
+      bottom: auto; left: auto;
+      padding: 6px 14px;
+    }
+
+    /* ===== LAUNCH DATE EDIT ===== */
+    .launch-edit {
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #666;
+      background: transparent;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .launch-edit:hover { border-color: #C9A84C; color: #C9A84C; }
+    .form-datetime {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0a0a0a;
+      border: 1px solid #2d2d2d;
+      border-radius: 2px;
+      color: #F5F0E8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      color-scheme: dark;
+    }
+    .form-datetime:focus { border-color: #C9A84C; }
+
+    /* ===== TOP NAV (TODO / ROADMAP) ===== */
+    .topnav {
+      position: sticky; top: 0; z-index: 120;
+      display: flex; gap: 10px; justify-content: center;
+      padding: 10px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #2d2d2d;
+    }
+    .topnav-btn {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px; letter-spacing: 3px;
+      padding: 6px 30px;
+      border: 1px solid #2d2d2d;
+      background: transparent; color: #999;
+      border-radius: 2px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .topnav-btn:hover { border-color: #C9A84C; color: #C9A84C; }
+    .topnav-btn.active { border-color: #C9A84C; color: #0a0a0a; background: #C9A84C; }
+    .header { top: 50px; }           /* stick below the nav */
+    .hidden-page { display: none; }
+
+    /* ===== ROADMAP PAGE ===== */
+    .roadmap-head { max-width: 960px; margin: 22px auto 4px; padding: 0 24px; text-align: center; }
+    .roadmap-list { max-width: 960px; margin: 18px auto 120px; padding: 0 24px; display: flex; flex-direction: column; gap: 16px; }
+    .phase {
+      background: #141414; border: 1px solid #2d2d2d; border-radius: 4px;
+      overflow: hidden;
+    }
+    .phase-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; border-bottom: 1px solid #2d2d2d;
+      background: linear-gradient(180deg, rgba(201,168,76,0.05), transparent);
+    }
+    .phase-title {
+      font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: #C9A84C;
+      flex: 1;
+    }
+    .phase-count {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #666;
+      border: 1px solid #2d2d2d; border-radius: 20px; padding: 1px 9px;
+    }
+    .phase-head .edit-todo-btn, .phase-head .delete-todo-btn { padding: 2px 7px; }
+    .phase-cards { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 7px; }
+    .rcard {
+      display: flex; align-items: center; gap: 10px;
+      background: #1a1a1a; border: 1px solid #2d2d2d; border-left: 3px solid #C9A84C;
+      border-radius: 3px; padding: 9px 12px;
+      transition: border-color 0.2s;
+    }
+    .rcard[data-status="IN ARBEIT"] { border-left-color: #3A6BC4; }
+    .rcard[data-status="DONE"] { border-left-color: #2A6B3C; opacity: 0.7; }
+    .rcard:hover { border-color: #3a3a3a; }
+    .rcard-title { flex: 1; font-size: 13px; color: #F5F0E8; }
+    .rcard[data-status="DONE"] .rcard-title { text-decoration: line-through; color: #777; }
+    .rcard-input {
+      flex: 1; background: #0a0a0a; border: 1px solid #C9A84C; border-radius: 2px;
+      color: #F5F0E8; font-family: 'Inter', sans-serif; font-size: 13px; padding: 4px 8px; outline: none;
+    }
+    .phase-add-row { display: flex; gap: 8px; align-items: center; padding-top: 3px; }
+    .phase-add-input {
+      flex: 1; background: #0a0a0a; border: 1px solid #2d2d2d; border-radius: 2px;
+      color: #F5F0E8; font-family: 'Inter', sans-serif; font-size: 12px; padding: 6px 10px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .phase-add-input:focus { border-color: #C9A84C; }
+    .phase-add-btn {
+      flex-shrink: 0; padding: 6px 14px; background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.3); color: #C9A84C; border-radius: 2px; cursor: pointer;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .phase-add-btn:hover { background: #C9A84C; color: #0a0a0a; }
+
+    /* ===== + button higher (clear the footer) ===== */
+    .add-btn { bottom: 74px; }
+
+    /* ===== PILLS (assignee / group / tags) ===== */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      padding: 5px 13px; border-radius: 20px;
+      border: 1px solid #2d2d2d; background: rgba(255,255,255,0.03); color: #999;
+      cursor: pointer; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .pill:hover { border-color: #C9A84C; color: #C9A84C; }
+    .pill.selected { border-color: #C9A84C; color: #0a0a0a; background: #C9A84C; }
+    .pill.removable { cursor: default; color: #C9A84C; border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.08); }
+    .pill-x { cursor: pointer; opacity: 0.7; font-size: 14px; line-height: 1; }
+    .pill-x:hover { opacity: 1; color: #8B1A1A; }
+    .pill-empty { font-size: 11px; color: #555; padding: 5px 2px; }
+    .pill-add { display: flex; gap: 8px; margin-top: 8px; }
+    .pill-add input {
+      flex: 1; background: #0a0a0a; border: 1px solid #2d2d2d; border-radius: 2px;
+      color: #F5F0E8; font-family: 'Inter', sans-serif; font-size: 12px; padding: 7px 10px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .pill-add input:focus { border-color: #C9A84C; }
+    .pill-add button {
+      padding: 0 15px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.3);
+      color: #C9A84C; border-radius: 2px; cursor: pointer; font-weight: 700; font-size: 15px;
+      transition: all 0.2s;
+    }
+    .pill-add button:hover { background: #C9A84C; color: #0a0a0a; }
+
+    /* ===== GROUP SECTION HEADERS ===== */
+    .group-head {
+      display: flex; align-items: center; gap: 10px;
+      margin: 16px 2px 3px; padding-bottom: 5px;
+      border-bottom: 1px solid #1f1f1f;
+    }
+    .group-head:first-child { margin-top: 0; }
+    .group-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: #C9A84C; }
+    .group-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #666; border: 1px solid #2d2d2d; border-radius: 20px; padding: 1px 8px; }
+
+    /* ===== ROADMAP VIEW TOGGLE (Phasen / Monate) ===== */
+    .rm-toggle { display: flex; gap: 8px; justify-content: center; max-width: 960px; margin: 14px auto 0; padding: 0 24px; }
+    .rm-toggle button {
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      padding: 6px 22px; border: 1px solid #2d2d2d; background: transparent; color: #999; border-radius: 2px; cursor: pointer; transition: all 0.2s;
+    }
+    .rm-toggle button:hover { border-color: #C9A84C; color: #C9A84C; }
+    .rm-toggle button.active { border-color: #C9A84C; color: #0a0a0a; background: #C9A84C; }
+    .rc-mv {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px; border: 1px solid #2d2d2d;
+      background: transparent; color: #999; cursor: pointer; font-size: 13px; line-height: 1;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .rc-mv:hover { border-color: #C9A84C; color: #C9A84C; }
+
+    /* ===== SEARCH ===== */
+    .search-wrap { max-width: 960px; margin: 16px auto 0; padding: 0 24px; position: relative; }
+    .search-wrap input {
+      width: 100%; background: #141414; border: 1px solid #2d2d2d; border-radius: 3px;
+      color: #F5F0E8; font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 36px 9px 13px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: #C9A84C; }
+    .search-wrap .search-clear {
+      position: absolute; right: 34px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; color: #666; font-size: 17px; line-height: 1; display: none;
+    }
+    .search-wrap .search-clear:hover { color: #C9A84C; }
+    .search-wrap.has-q .search-clear { display: block; }
+
+    /* ===== PRIORITY ===== */
+    .prio-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .prio-dot.hoch    { background: #d04545; box-shadow: 0 0 6px rgba(208,69,69,0.6); }
+    .prio-dot.mittel  { background: #C9A84C; }
+    .prio-dot.niedrig { background: #5a6b7a; }
+
+    /* ===== DEADLINE ===== */
+    .due-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #888;
+      border: 1px solid #2d2d2d; border-radius: 3px; padding: 2px 7px; white-space: nowrap;
+    }
+    .due-chip.over { color: #d04545; border-color: rgba(208,69,69,0.4); background: rgba(139,26,26,0.12); }
+
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="topnav">
+    <button class="topnav-btn active" id="nav-todo">TODO</button>
+    <button class="topnav-btn" id="nav-roadmap">ROADMAP</button>
+  </nav>
+
+  <!-- ===================== TODO PAGE ===================== -->
+  <div id="page-todo">
+
+  <!-- HEADER — STICKY COUNTDOWN -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <div class="logo-text" id="logo-label">Maldito City</div>
+      <div class="logo-title" id="logo-heading">LAUNCH COUNTDOWN</div>
+      <div class="countdown-wrap" id="countdown">
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cd-days">00</div>
+          <div class="countdown-label">Tage</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cd-hours">00</div>
+          <div class="countdown-label">Stunden</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cd-minutes">00</div>
+          <div class="countdown-label">Minuten</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cd-seconds">00</div>
+          <div class="countdown-label">Sekunden</div>
+        </div>
+      </div>
+      <div class="countdown-sub" id="cd-sub"></div>
+      <div class="expired-banner">LAUNCH DEADLINE ÜBERSCHRITTEN</div>
+      <button class="launch-edit" id="launch-edit" title="Countdown anpassen">&#9881; Countdown anpassen</button>
+    </div>
+  </header>
+
+  <!-- GLOBAL PROGRESS -->
+  <section class="progress-section">
+    <div class="progress-header">
+      <div class="progress-title">Gesamtfortschritt</div>
+      <div class="progress-stats" id="progress-stats">0 / 0</div>
+    </div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-sub-stats" id="progress-sub"></div>
+  </section>
+
+  <!-- SEARCH -->
+  <div class="search-wrap" id="search-wrap">
+    <input id="todo-search" type="text" placeholder="Suchen (Titel, Sub-Tasks, Tags, Gruppe)...">
+    <span class="search-clear" id="search-clear">&times;</span>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-filter="ALLE">ALLE</button>
+    <button class="filter-btn" data-filter="OFFEN">OFFEN</button>
+    <button class="filter-btn" data-filter="IN ARBEIT">IN ARBEIT</button>
+    <button class="filter-btn" data-filter="DONE">DONE</button>
+    <button class="filter-btn" data-filter="ZAYN">ZAYN</button>
+    <button class="filter-btn" data-filter="VITO">VITO</button>
+  </div>
+
+  <!-- TODO CARDS -->
+  <main class="todo-list" id="todo-list"></main>
+
+  <!-- ADD BUTTON -->
+  <button class="add-btn" id="add-btn" title="Neues Todo hinzufuegen">+</button>
+
+  </div><!-- /page-todo -->
+
+  <!-- ===================== ROADMAP PAGE ===================== -->
+  <div id="page-roadmap" class="hidden-page">
+    <section class="roadmap-head">
+      <div class="logo-text">Maldito City</div>
+      <div class="logo-title">ROADMAP</div>
+    </section>
+    <div class="rm-toggle" id="rm-toggle">
+      <button data-rv="phases" class="active">PHASEN</button>
+      <button data-rv="months">MONATE</button>
+    </div>
+    <main class="roadmap-list" id="roadmap-list"></main>
+    <button class="add-btn" id="add-phase-btn" title="Phase hinzufuegen">+</button>
+  </div>
+
+  <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+
+  <!-- FOOTER — Import/Export inside, double-click logo for reset -->
+  <footer class="footer">
+    <button class="export-btn" id="export-btn">Export JSON</button>
+    <button class="import-btn" id="import-btn">Import JSON</button>
+    <div class="footer-text" id="footer-logo">MALDITO CITY DEV TRACKER</div>
+  </footer>
+
+  <!-- ADD MODAL -->
+  <div class="modal-overlay" id="add-modal">
+    <div class="modal">
+      <div class="modal-title" id="add-modal-title">Neues Todo</div>
+      <div class="form-group">
+        <label class="form-label">Titel</label>
+        <input class="form-input" id="new-title" type="text" placeholder="z.B. Discord Bot Setup">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assignee</label>
+        <div class="pill-row" id="assignee-pills"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priorität</label>
+        <div class="pill-row" id="prio-pills"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deadline (optional)</label>
+        <input class="form-datetime" id="new-due" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gruppe</label>
+        <div class="pill-row" id="group-pills"></div>
+        <div class="pill-add">
+          <input id="group-add-input" type="text" placeholder="+ Neue Gruppe...">
+          <button id="group-add-btn" type="button">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="pill-row" id="tag-pills"></div>
+        <div class="pill-add">
+          <input id="tag-add-input" type="text" placeholder="+ Tag (Enter)...">
+          <button id="tag-add-btn" type="button">+</button>
+        </div>
+      </div>
+      <div class="form-group" id="subtasks-group">
+        <label class="form-label">Sub-Tasks</label>
+        <textarea class="form-textarea" id="new-subtasks" placeholder="Eine Aufgabe pro Zeile..."></textarea>
+        <div class="form-hint">Jede Zeile wird ein Sub-Task</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="add-cancel">Abbrechen</button>
+        <button class="btn-primary" id="add-submit">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET MODAL -->
+  <div class="modal-overlay reset-modal" id="reset-modal">
+    <div class="modal">
+      <div class="modal-title">Alles zuruecksetzen?</div>
+      <div class="reset-warning">
+        Alle Fortschritte und selbst erstellte Todos werden unwiderruflich geloescht.
+        Dieser Vorgang kann nicht rueckgaengig gemacht werden.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="reset-cancel">Abbrechen</button>
+        <button class="btn-danger" id="reset-confirm">Alles loeschen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAUNCH DATE MODAL -->
+  <div class="modal-overlay" id="launch-modal">
+    <div class="modal">
+      <div class="modal-title">Countdown anpassen</div>
+      <div class="form-group">
+        <label class="form-label">Label (kleine Zeile)</label>
+        <input class="form-input" id="launch-label" type="text" placeholder="Maldito City">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Titel</label>
+        <input class="form-input" id="launch-heading" type="text" placeholder="LAUNCH COUNTDOWN">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Datum &amp; Uhrzeit</label>
+        <input class="form-datetime" id="launch-input" type="datetime-local">
+        <div class="form-hint">Der Countdown rechnet ab sofort auf diesen Zeitpunkt.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="launch-reset">Standard</button>
+        <button class="btn-secondary" id="launch-cancel">Abbrechen</button>
+        <button class="btn-primary" id="launch-save">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ========== DEFAULT DATA — ALL 20 TODOS ==========
+const DEFAULT_TODOS = [
+  {
+    id: 1,
+    title: "Job Creator",
+    assignee: "BEIDE",
+    tags: ["UI", "LUA", "DB", "REACT"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "1.1", text: "Vito: UI-Konzept finalisieren (Wireframe / Figma Export)", done: false },
+      { id: "1.2", text: "Vito: Maldito Design System auf Job Creator UI anwenden (Farben, Fonts, Icons)", done: false },
+      { id: "1.3", text: "Zayn: NUI-Frame in FiveM einbinden (HTML/CSS/JS in resource)", done: false },
+      { id: "1.4", text: "Zayn: Lua-Handler f\u00fcr Job-Assignment schreiben (QBCore Player Jobs)", done: false },
+      { id: "1.5", text: "Zayn: DB-Schema anlegen (Tabellen: mc_jobs, mc_player_jobs, mc_job_grades)", done: false },
+      { id: "1.6", text: "Zayn: CRUD-API in Lua f\u00fcr Job Create/Read/Update/Delete", done: false },
+      { id: "1.7", text: "Zayn: QBCore Job-Config automatisch aus DB bef\u00fcllen beim Server-Start", done: false },
+      { id: "1.8", text: "Test: Job anlegen, Spieler zuweisen, Grade wechseln, Job l\u00f6schen", done: false },
+      { id: "1.9", text: "Integration pr\u00fcfen: Skilltree (Todo 13) + Zivi Jobs (Todo 12) m\u00fcssen Job Creator nutzen", done: false }
+    ]
+  },
+  {
+    id: 2,
+    title: "PegasusAC \u2014 Vollst\u00e4ndig lauff\u00e4hig",
+    assignee: "ZAYN",
+    tags: ["LUA", "DISCORD", "ANTICHEAT", "NUI"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "2.1", text: "Discord Bot debuggen: Userliste wird nicht korrekt getrackt \u2014 Bot-Permissions pr\u00fcfen (GUILD_MEMBERS Intent)", done: false },
+      { id: "2.2", text: "Discord Bot: Whitelist-Sync zwischen Discord-Rollen und Pegasus-Allowlist fixen", done: false },
+      { id: "2.3", text: "FiveM Blocker-UI: Custom NUI erstellen die KEIN Pegasus-Branding zeigt", done: false },
+      { id: "2.4", text: "Blocker-UI: Muss aussehen wie native Maldito-Meldung (Maldito Gold, Bebas Neue, kein AC-Hinweis)", done: false },
+      { id: "2.5", text: "Ladeprozess: Gegencheck-Anzeige durch neutrale Maldito-Ladeanimation ersetzen", done: false },
+      { id: "2.6", text: "Alle Log-Outputs pr\u00fcfen: Kein 'Pegasus' in client-seitig lesbaren Outputs, Konsole, net_events", done: false },
+      { id: "2.7", text: "Event-Namen auditieren: Alle QBCore-Events korrekt gemappt, keine ESX-Reste", done: false },
+      { id: "2.8", text: "Blacklist-Mode verifizieren: Nur Blacklist aktiv, kein False-Positive-Risiko", done: false },
+      { id: "2.9", text: "Discord Webhook: Ban/Flag-Notifications testen (Format, Channel, Ping-Rollen)", done: false },
+      { id: "2.10", text: "Perspektivisch: Interner Name f\u00fcr PegasusAC definieren (z.B. 'MalditoShield' oder 'Isla Guard')", done: false },
+      { id: "2.11", text: "Stress-Test: 5+ simultane Flag-Events simulieren, Discord-Output pr\u00fcfen", done: false }
+    ]
+  },
+  {
+    id: 3,
+    title: "maldito_garage \u2014 Funktionstests",
+    assignee: "ZAYN",
+    tags: ["LUA", "DB", "NUI", "QBCORE"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "3.1", text: "Fahrzeug einparken und wieder abrufen testen (owned vehicles)", done: false },
+      { id: "3.2", text: "Fahrzeugzustand persistent: Fuel, Damage, Tuning nach Garage-Abruf pr\u00fcfen", done: false },
+      { id: "3.3", text: "Impound-Logik testen (Fahrzeug beschlagnahmt, Abholung mit Geb\u00fchr)", done: false },
+      { id: "3.4", text: "Multi-Garage-Support: Verschiedene Garagen auf Map testen", done: false },
+      { id: "3.5", text: "NUI-Design: Maldito-Designsprache anwenden falls UI noch generisch ist", done: false },
+      { id: "3.6", text: "DB-Tabelle mc_player_vehicles pr\u00fcfen: Schema, Indexe, keine Duplikate", done: false },
+      { id: "3.7", text: "Edge Cases: Fahrzeug crashed/nicht gefunden, Garage voll, kein Geld f\u00fcr Impound", done: false },
+      { id: "3.8", text: "Integration mit Todo 6: Alle Fahrzeuge durchlaufen lassen", done: false }
+    ]
+  },
+  {
+    id: 4,
+    title: "Tebex \u2014 Ingame Shop + Website",
+    assignee: "BEIDE",
+    tags: ["TEBEX", "LUA", "HTML", "CSS", "WEBDESIGN"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "4.1", text: "Tebex Store: Alle Pakete anlegen (VIP Tiers, Cosmetics, Maldito Express Karten)", done: false },
+      { id: "4.2", text: "Tebex: Compliance-Check \u2014 P2W-Regelkonformit\u00e4t f\u00fcr jeden Artikel best\u00e4tigen", done: false },
+      { id: "4.3", text: "Ingame Command: /store oder NUI-Button der auf Tebex-Store verlinkt", done: false },
+      { id: "4.4", text: "Tebex Webhooks: Kauf-Event \u2192 Lua-Handler \u2192 QBCore Reward-Delivery", done: false },
+      { id: "4.5", text: "Tebex Webhooks testen: Kauf simulieren, Item landet korrekt im Inventory", done: false },
+      { id: "4.6", text: "Website assila.group/maldito oder maldito.city aufsetzen (Landing Page)", done: false },
+      { id: "4.7", text: "Website: Hero, Feature-Section, Shop-CTA, Discord-Link, Server-Status Widget", done: false },
+      { id: "4.8", text: "Vito: Website Design im Maldito Design System (kein Template)", done: false },
+      { id: "4.9", text: "Impressum + Datenschutz auf Website (Pflicht f\u00fcr DE)", done: false },
+      { id: "4.10", text: "AGB f\u00fcr Tebex-K\u00e4ufe formulieren (digitale Waren, kein Widerrufsrecht-Ausschluss vergessen)", done: false }
+    ]
+  },
+  {
+    id: 5,
+    title: "PD/MD/SD/DOJ/FIB \u2014 CopNet System",
+    assignee: "ZAYN",
+    tags: ["LUA", "DB", "NUI", "REACT", "QBCORE"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "5.1", text: "Research: MDT/CopNet Systeme evaluieren (shot: linden_mdt, shot: ps-mdt, shot: bub-mdt)", done: false },
+      { id: "5.2", text: "Kauf und Download des gew\u00e4hlten Systems", done: false },
+      { id: "5.3", text: "QBCore-Kompatibilit\u00e4t pr\u00fcfen: Framework-Calls, Jobs, Inventory", done: false },
+      { id: "5.4", text: "DB-Integration: Tabellen anlegen, Schema zu DB1/DB3 zuordnen", done: false },
+      { id: "5.5", text: "Fraktions-Jobs anlegen: police, ambulance, sheriff, doj, fib \u2014 Grades definieren", done: false },
+      { id: "5.6", text: "MDT NUI: Maldito-Design anwenden soweit m\u00f6glich (Farben/Fonts)", done: false },
+      { id: "5.7", text: "Fahndungssystem testen: Warrant anlegen, Fahndungslevel, BOLO", done: false },
+      { id: "5.8", text: "Verbrechens-Datenbank: Vergehen, Strafen, Vorstrafen \u2014 Starter-Daten bef\u00fcllen", done: false },
+      { id: "5.9", text: "Zugriffsrechte via Ace Permissions (Todo 7) korrekt setzen", done: false },
+      { id: "5.10", text: "Live-Test mit echten Spielern: Arrest, MDT-Eintrag, Auslassung simulieren", done: false }
+    ]
+  },
+  {
+    id: 6,
+    title: "Fahrzeuge + Admin Tools \u2014 Volltest",
+    assignee: "BEIDE",
+    tags: ["LUA", "QBCORE", "ADMIN", "MAP"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "6.1", text: "Fahrzeugliste exportieren: Alle vehicles.lua / stream-Eintr\u00e4ge dokumentieren", done: false },
+      { id: "6.2", text: "Testprotokoll erstellen: Spawn, Handling, Sound, Livery, Tuning \u2014 f\u00fcr jedes Fahrzeug", done: false },
+      { id: "6.3", text: "Defekte Fahrzeuge loggen und entweder fixen oder aus dem Pool entfernen", done: false },
+      { id: "6.4", text: "Admin Tools inventarisieren: Welche Commands existieren? Welche fehlen?", done: false },
+      { id: "6.5", text: "Admin Menu testen: Spawn, Teleport, Give Item, Set Job, Ban, Kick", done: false },
+      { id: "6.6", text: "Admin-Log Channel im Discord: Alle Admin-Actions werden geloggt", done: false },
+      { id: "6.7", text: "Admin-Rollen via Ace Permissions absichern (kein unberechtigter Zugriff)", done: false },
+      { id: "6.8", text: "Fahrzeug-Kategorien im Shop korrekt zugeordnet (Tebex Todo 4)", done: false }
+    ]
+  },
+  {
+    id: 7,
+    title: "Ace Permissions \u2014 Rollen anlegen, bereinigen, dokumentieren",
+    assignee: "ZAYN",
+    tags: ["LUA", "CFG", "QBCORE", "SICHERHEIT"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "7.1", text: "Ist-Aufnahme: Alle bestehenden Ace-Eintr\u00e4ge in server.cfg / permissions.cfg auflisten", done: false },
+      { id: "7.2", text: "Rollen-Konzept definieren: admin, superadmin, moderator, developer, vip_gold, vip_platinum, vip_business, faction_lead", done: false },
+      { id: "7.3", text: "Doppelte und verwaiste Ace-Eintr\u00e4ge entfernen", done: false },
+      { id: "7.4", text: "Jede Resource auf ben\u00f6tigte Ace-Nodes pr\u00fcfen und dokumentieren", done: false },
+      { id: "7.5", text: "PegasusAC (Todo 2) Whitelist-Rollen mit Ace koppeln", done: false },
+      { id: "7.6", text: "CopNet (Todo 5) Fraktions-Permissions via Ace abbilden", done: false },
+      { id: "7.7", text: "Designer-Access / sv_pure Whitelist Resource einbinden", done: false },
+      { id: "7.8", text: "Dokumentation: permissions.md als SSOT f\u00fcr alle Ace-Nodes anlegen", done: false }
+    ]
+  },
+  {
+    id: 8,
+    title: "Map Fix \u2014 Roter Strich",
+    assignee: "ZAYN",
+    tags: ["YMAP", "CODEWALKER", "MAP", "LUA"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "8.1", text: "Roter Strich auf Minimap lokalisieren: Koordinaten bestimmen", done: false },
+      { id: "8.2", text: "CodeWalker \u00f6ffnen: Betroffenes YMAP/YTYP identifizieren", done: false },
+      { id: "8.3", text: "Ursache bestimmen: Grenze? Zone? Fehlendes Prop? Falsch gesetztes Entity?", done: false },
+      { id: "8.4", text: "Fix in CodeWalker anwenden und exportieren", done: false },
+      { id: "8.5", text: "Resource neu starten, in-game visuell pr\u00fcfen", done: false },
+      { id: "8.6", text: "Minimap bei verschiedenen Zoom-Stufen und Tageszeiten pr\u00fcfen", done: false }
+    ]
+  },
+  {
+    id: 9,
+    title: "UCP \u2014 Anbindung an DB3",
+    assignee: "ZAYN",
+    tags: ["PHP", "DB", "API", "UCP"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "9.1", text: "UCP-System evaluieren / ausw\u00e4hlen (txAdmin integriert? Custom UCP?)", done: false },
+      { id: "9.2", text: "DB3-Schema dokumentieren: Welche Tabellen liegen auf DB3?", done: false },
+      { id: "9.3", text: "Datenbankverbindung UCP \u2192 DB3 konfigurieren (Credentials sicher in .env)", done: false },
+      { id: "9.4", text: "UCP-Login via Discord OAuth absichern", done: false },
+      { id: "9.5", text: "Spieler-Profil im UCP: Character, Inventory, Fahrzeuge, Strafregister", done: false },
+      { id: "9.6", text: "Admin-Panel im UCP: Ban, Warn, Unban \u2014 mit Log in DB3", done: false },
+      { id: "9.7", text: "UCP auf assila.group/ucp oder ucp.maldito.city deployen", done: false },
+      { id: "9.8", text: "SSL + Rate Limiting + CSRF-Schutz verifizieren", done: false }
+    ]
+  },
+  {
+    id: 10,
+    title: "Discord Bots \u2014 Pr\u00fcfung und Verifikation",
+    assignee: "ZAYN",
+    tags: ["DISCORD", "BOT", "JS", "WEBHOOK"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "10.1", text: "Alle aktiven Bots inventarisieren: Name, Zweck, Token-Status", done: false },
+      { id: "10.2", text: "Bot: Whitelist-Sync (Discord-Rolle \u2192 FiveM Allowlist) testen", done: false },
+      { id: "10.3", text: "Bot: Ban/Kick-Notifications aus FiveM \u2192 Discord Channel verifizieren", done: false },
+      { id: "10.4", text: "Bot: Server-Status Embed (Online/Offline, Spielerzahl, Max-Slots)", done: false },
+      { id: "10.5", text: "Bot: Bewerbungs-Workflow f\u00fcr Fraktionen (Slash Commands, Buttons, Modals)", done: false },
+      { id: "10.6", text: "Bot: Invite Wars System pr\u00fcfen (Todo war offen)", done: false },
+      { id: "10.7", text: "Webhook-URLs alle auf korrekte Channels pr\u00fcfen (kein Test-Channel auf Prod)", done: false },
+      { id: "10.8", text: "Bot-Berechtigungen minimieren: Nur die Intents die wirklich gebraucht werden", done: false },
+      { id: "10.9", text: "Token-Rotation: Alle Bot-Tokens in .env, nicht hardcoded in Code", done: false }
+    ]
+  },
+  {
+    id: 11,
+    title: "Einreise-Szenarien \u2014 Fertigschreiben",
+    assignee: "BEIDE",
+    tags: ["LORE", "NUI", "LUA", "NARRATIVE"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "11.1", text: "Einreise-Pfade definieren: Boot-Pfad vs Flugzeug-Pfad \u2014 beide Szenarien vollst\u00e4ndig beschreiben", done: false },
+      { id: "11.2", text: "Drehbuch: L\u00fccken in Dialogzeilen / Erz\u00e4hltext f\u00fcllen", done: false },
+      { id: "11.3", text: "Vito: Cutscene-Kamera-Winkel und NUI-Overlays f\u00fcr beide Pfade konzipieren", done: false },
+      { id: "11.4", text: "maldito_intro: Lua-Resource vollst\u00e4ndig (Kamera, Fade, NUI, Sound, DB-Eintrag)", done: false },
+      { id: "11.5", text: "Wahl-Mechanik: Spieler w\u00e4hlt Pfad beim ersten Login (stored in DB)", done: false },
+      { id: "11.6", text: "Neustarter-Flow: Was passiert wenn Character gel\u00f6scht wird? Erneute Einreise?", done: false },
+      { id: "11.7", text: "Voice Over / Ambient Sound: Wellen, Motorenger\u00e4usch \u2014 Audiodateien einbinden", done: false },
+      { id: "11.8", text: "Test: Kompletter Einreise-Flow ohne Skip-M\u00f6glichkeit durch Spieler", done: false }
+    ]
+  },
+  {
+    id: 12,
+    title: "Zivi Jobs \u2014 Konzept, Design, Implementierung",
+    assignee: "BEIDE",
+    tags: ["LUA", "NUI", "DB", "REACT", "DESIGN"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "12.1", text: "Job-Liste konzipieren: Alle m\u00f6glichen Zivi-Jobs brainstormen und bewerten (Simpelheit, Fun-Faktor, MP-Tauglichkeit)", done: false },
+      { id: "12.2", text: "Job-Kategorien: Solo-Jobs vs Multiplayer-Jobs klar trennen", done: false },
+      { id: "12.3", text: "F\u00fcr jeden Job: Mini-Design-Doc (Ablauf, Reward, Spieleranzahl, Dauer, Spawnpunkt)", done: false },
+      { id: "12.4", text: "UI-Prinzip festlegen: Gleiche NUI-Komponente f\u00fcr alle Jobs (nur Content variiert)", done: false },
+      { id: "12.5", text: "Vito: NUI-Template designen das f\u00fcr alle Zivi-Jobs verwendet wird", done: false },
+      { id: "12.6", text: "Zayn: Basis-Lua-Framework f\u00fcr Jobs bauen (Start, Progress, Complete, Reward)", done: false },
+      { id: "12.7", text: "Job 1 vollst\u00e4ndig implementieren als Referenz (Pilotjob)", done: false },
+      { id: "12.8", text: "Skilltree-Hooks: Jobs geben Skill-Punkte (Todo 13 Integration)", done: false },
+      { id: "12.9", text: "Job Creator (Todo 1) nutzen um neue Jobs anzulegen", done: false },
+      { id: "12.10", text: "Anti-Exploit: Cooldowns, Server-Side-Validation, kein Client-Trust", done: false }
+    ]
+  },
+  {
+    id: 13,
+    title: "Skilltree \u2014 Anbindung an Jobs",
+    assignee: "ZAYN",
+    tags: ["LUA", "DB", "NUI", "REACT"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "13.1", text: "Skilltree-Konzept: Welche Skills gibt es? (Sammeln, Fahren, Schie\u00dfen, Crafting, Social)", done: false },
+      { id: "13.2", text: "DB-Schema: mc_player_skills (player_id, skill_name, level, xp, last_updated)", done: false },
+      { id: "13.3", text: "XP-System: Punkte pro Job-Completion, Levelgrenzen definieren", done: false },
+      { id: "13.4", text: "Skill-Effects in Lua implementieren (z.B. schnelleres Sammeln = timer * (1 - skill_modifier))", done: false },
+      { id: "13.5", text: "Skill-Anzeige im Spieler-HUD oder Charaktermen\u00fc", done: false },
+      { id: "13.6", text: "Vito: Skilltree NUI designen (Baumstruktur, Nodes, Fortschrittsbalken)", done: false },
+      { id: "13.7", text: "Anti-Grind: Max-XP pro Zeitfenster definieren, serverseitig validieren", done: false },
+      { id: "13.8", text: "Prestige / Reset: Kann ein Spieler seinen Skill resetten f\u00fcr Bonus?", done: false }
+    ]
+  },
+  {
+    id: 14,
+    title: "Fitness System \u2014 Konzept & Umsetzbarkeit Muskelwachstum",
+    assignee: "BEIDE",
+    tags: ["LUA", "YMAP", "NUI", "META", "DESIGN"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "14.1", text: "Technische Machbarkeitsstudie: GTA V Ped-Komponenten f\u00fcr Muskelaufbau (mp_m_freemode_01 body components)", done: false },
+      { id: "14.2", text: "Ped-Variation: freemode_01 hat Muscle-Slider \u2014 diesen per Lua steuerbar machen", done: false },
+      { id: "14.3", text: "Persistenz: Muskelwert in DB speichern, beim Login laden und Ped-Komponente setzen", done: false },
+      { id: "14.4", text: "Kleidungskonflikt l\u00f6sen: Kleidungsst\u00fccke die nicht mit Muskel-Preset kompatibel sind identifizieren", done: false },
+      { id: "14.5", text: "Kleidungs-Filter: Bei hohem Muskelwert bestimmte enge Shirts sperren oder Variante wechseln", done: false },
+      { id: "14.6", text: "Training-Mechanik: Gym-Interaktion \u2192 XP \u2192 Muskelwert steigt langsam", done: false },
+      { id: "14.7", text: "Decay-System: Ohne Training sinkt Muskelwert langsam (Realismus)", done: false },
+      { id: "14.8", text: "Fitness-Gym MLO: Interaktionspunkte f\u00fcr Ger\u00e4te setzen (ox_target)", done: false },
+      { id: "14.9", text: "UI: Fitness-Tracker NUI (K\u00f6rpersilhouette mit Muskelwert-Visualisierung)", done: false },
+      { id: "14.10", text: "Gameplay-Effekte: H\u00f6herer Muskelwert = weniger Damage? Mehr Trage-Kapazit\u00e4t? Konzept entscheiden", done: false }
+    ]
+  },
+  {
+    id: 15,
+    title: "Item Creator \u2014 Rainmad-Anbindung + Prop-Pr\u00fcfung",
+    assignee: "ZAYN",
+    tags: ["LUA", "JSON", "3DMODELL", "OX_INVENTORY"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "15.1", text: "Rainmad Item Creator: Verbindung zu ox_inventory testen (Items korrekt registriert?)", done: false },
+      { id: "15.2", text: "Item anlegen: Test-Item erstellen, im Inventory erscheinen lassen, droppen", done: false },
+      { id: "15.3", text: "Prop-Anbindung: Item bekommt Prop-Modell \u2014 korrekt gestreamt?", done: false },
+      { id: "15.4", text: "3D-Modell pr\u00fcfen: LODs, Collision, korrekte Origin/Rotation, keine Z-Fighting", done: false },
+      { id: "15.5", text: "Item-Bild: 512x512 PNG mit transparentem Hintergrund, korrekt in ox_inventory web/images/", done: false },
+      { id: "15.6", text: "Item-Metadaten: Weight, Stackable, Usable-Flag, Description", done: false },
+      { id: "15.7", text: "Usable Item: RegisterUsableItem in Lua \u2014 Use-Event triggert Server-Callback", done: false },
+      { id: "15.8", text: "Workflow dokumentieren: Wie erstellt man ein neues Item von A bis Z? (f\u00fcr Vito nachvollziehbar)", done: false }
+    ]
+  },
+  {
+    id: 16,
+    title: "Weapon Sling + Inventory-Finalisierung",
+    assignee: "ZAYN",
+    tags: ["LUA", "OX_INVENTORY", "NUI", "ANIMATION"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "16.1", text: "maldito_inventory finalisieren: Alle offenen PRs / Bugs schlie\u00dfen", done: false },
+      { id: "16.2", text: "ox_inventory Kompatibilit\u00e4t sicherstellen: Alle Waffen korrekt registriert", done: false },
+      { id: "16.3", text: "maldito_weaponcarry: Holster-Gate pr\u00fcfen \u2014 Waffe nur sichtbar wenn entsprechendes Holster-Item im Inventory", done: false },
+      { id: "16.4", text: "Carry-Positionen (Hip / Back / Shoulder) per Ped-Attachment korrekt setzen", done: false },
+      { id: "16.5", text: "Server-Sync: Andere Spieler sehen die Waffe am K\u00f6rper (Attachment via Triggernetwork)", done: false },
+      { id: "16.6", text: "Animation beim Ziehen: Draw-Animation korrekt per Lua-Task-Sequence", done: false },
+      { id: "16.7", text: "Evaluierung: Kaufl\u00f6sung vs Eigenentwicklung (z.B. k9-holster, t1ger_weapons pr\u00fcfen)", done: false },
+      { id: "16.8", text: "Waffenmodelle am K\u00f6rper: Props f\u00fcr Custom-Waffen korrekt als Attachment definiert?", done: false },
+      { id: "16.9", text: "Test: Waffe im Inventory \u2192 Holster-Item vorhanden \u2192 Waffe sichtbar am Ped", done: false },
+      { id: "16.10", text: "Test: Holster-Item entfernen \u2192 Waffe verschwindet sofort vom Ped (serverseitig validiert)", done: false }
+    ]
+  },
+  {
+    id: 17,
+    title: "Maldito World \u2014 NoNPC Whitelist-System",
+    assignee: "ZAYN",
+    tags: ["LUA", "NPC", "LOGGING", "QBCORE", "WORLD"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "17.1", text: "NoNPC-Script analysieren: Wie greift es aktuell ein? (RemoveAllPeds, Population-Density, Pool-Clearing?)", done: false },
+      { id: "17.2", text: "Whitelist-Mechanismus konzipieren: Eigener Event-Bus oder Metadata-Flag", done: false },
+      { id: "17.3", text: "Trigger-Herkunft pr\u00fcfen: maldito_* Scripts = erlaubt, Spieler-Client = geblockt + geloggt", done: false },
+      { id: "17.4", text: "Core Cinematics Integration: maldito_intro als vertrauensw\u00fcrdige Quelle registrieren", done: false },
+      { id: "17.5", text: "J\u00e4ger-Script: NPC-Tiere an definierten Spawn-Spots freigeben (Koordinaten-Whitelist)", done: false },
+      { id: "17.6", text: "Tier-NPCs: Bewegungsradius definieren, korrekte Animal-Hashes nutzen", done: false },
+      { id: "17.7", text: "Logging-System: Jeden erlaubten NPC-Spawn loggen \u2192 Discord-Webhook (#npc-log)", done: false },
+      { id: "17.8", text: "Logging: Geblockte unerlaubte Spawn-Versuche ebenfalls loggen mit Spieler-Identifier", done: false },
+      { id: "17.9", text: "Test: maldito_intro starten \u2192 NPC erscheint \u2192 nicht durch NoNPC entfernt \u2192 Log-Entry vorhanden", done: false },
+      { id: "17.10", text: "Test: J\u00e4ger-Job \u2192 Tier-NPCs spawnen korrekt \u2192 bewegen sich im Radius \u2192 Log-Entry vorhanden", done: false },
+      { id: "17.11", text: "Stress-Test: 10 simultane erlaubte NPC-Spawns \u2014 kein Performance-Einbruch", done: false }
+    ]
+  },
+  {
+    id: 18,
+    title: "Maldito World \u2014 Tebex-Fahrzeuglieferung durch Valet-NPC",
+    assignee: "ZAYN",
+    tags: ["LUA", "NPC", "TEBEX", "GARAGE", "AI"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "18.1", text: "Machbarkeits-Check: Tebex Webhook \u2192 Lua-Handler \u2192 NPC-Spawn-Flow durchdenken", done: false },
+      { id: "18.2", text: "Tebex Webhook: Bei Fahrzeugkauf Event an Server senden (player_id, vehicle_model, plate)", done: false },
+      { id: "18.3", text: "Garage-Koordinaten-System: Freie Abstellfl\u00e4chen pro Garage als Array verwalten", done: false },
+      { id: "18.4", text: "Safe-Spawn-Algorithmus: NPC-Spawn-Punkt bestimmen (Radius-Check 15m \u2192 30m \u2192 45m)", done: false },
+      { id: "18.5", text: "Valet-NPC spawnen: Korrekter Ped-Hash, mit Fahrzeug an Safe-Spawn-Punkt", done: false },
+      { id: "18.6", text: "NPC f\u00e4hrt zur Garage: TaskVehicleDriveToCoord mit gem\u00e4\u00dfigter Geschwindigkeit", done: false },
+      { id: "18.7", text: "NPC parkt ein: Am freien Slot stoppen, TaskLeaveVehicle, dann Weglaufpfad", done: false },
+      { id: "18.8", text: "Despawn-Logik: NPC ist X Meter entfernt \u2192 DeletePed (sauber)", done: false },
+      { id: "18.9", text: "Verfolgungs-Erkennung: Spieler < 8m \u2192 Tracking starten (2-Minuten-Timer)", done: false },
+      { id: "18.10", text: "Warnstufe 1: NPC dreht sich um, zieht Pistole, zielt auf Spieler", done: false },
+      { id: "18.11", text: "Warnstufe 2: NPC schie\u00dft einmal in die Luft, dann wieder zielen", done: false },
+      { id: "18.12", text: "Warnstufe 3: Spieler schie\u00dft auf NPC \u2192 Ragdoll + kriecht weg \u2192 Despawn", done: false },
+      { id: "18.13", text: "NPC durch NoNPC-Whitelist (Todo 17) als erlaubt markiert", done: false },
+      { id: "18.14", text: "Spieler-Notification: 'Dein Fahrzeug wird geliefert'", done: false },
+      { id: "18.15", text: "Fahrzeug in DB eintragen nach erfolgreichem Parken", done: false },
+      { id: "18.16", text: "Edge Cases: Garage voll, NPC steckt fest, Pathfinding-Fallback", done: false },
+      { id: "18.17", text: "Test: Tebex-Kauf \u2192 NPC spawnt \u2192 f\u00e4hrt vor \u2192 parkt \u2192 Fahrzeug in Garage", done: false },
+      { id: "18.18", text: "Test: Alle 3 Warnstufen durchspielen \u2014 kein Server-Crash", done: false }
+    ]
+  },
+  {
+    id: 19,
+    title: "Maldito Farming \u2014 Qualit\u00e4tssystem (Haltbarkeit, Verfall, Preisstaffelung)",
+    assignee: "ZAYN",
+    tags: ["LUA", "DB", "OX_INVENTORY", "ECONOMY", "QBCORE"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "19.1", text: "Routen-Konzept dokumentieren: Sammler \u2192 Verarbeiter \u2192 K\u00e4ufer f\u00fcr alle Routen (Weed, Kokain, 4x Gr\u00fcngeld)", done: false },
+      { id: "19.2", text: "DB-Schema: mc_farming_items Tabelle (item_id, player_id, item_type, quantity, collected_at, quality_state)", done: false },
+      { id: "19.3", text: "Qualit\u00e4ts-Threshold-Tabelle als externe Config (perfekt < 2h, gut < 4h, ordentlich < 6h, schlecht ab 6h, verschimmelt ab 120h)", done: false },
+      { id: "19.4", text: "Qualit\u00e4ts-Berechnung als Server-Side Lua-Funktion: getItemQuality(collected_at)", done: false },
+      { id: "19.5", text: "Item-Metadata: collected_at Timestamp als ox_inventory Metadata speichern", done: false },
+      { id: "19.6", text: "Verarbeiter-Logik: Qualit\u00e4t zum Zeitpunkt der Abgabe berechnen", done: false },
+      { id: "19.7", text: "Verschimmelt-Mechanik: 30\u201350% Output, Output-Qualit\u00e4t immer 'schlecht'", done: false },
+      { id: "19.8", text: "Output-Qualit\u00e4t am verarbeiteten Item als Metadata speichern", done: false },
+      { id: "19.9", text: "Preisstaffelung Weed: perfekt=100%, gut=75%, ordentlich=50%, schlecht=30%, verschimmelt=15%", done: false },
+      { id: "19.10", text: "Preisstaffelung Kokain: perfekt=100%, gut=80%, ordentlich=55%, schlecht=35%, verschimmelt=20%", done: false },
+      { id: "19.11", text: "Preisstaffelung Gr\u00fcngeld: perfekt=100%, gut=70%, ordentlich=45%, schlecht=25%, verschimmelt=10%", done: false },
+      { id: "19.12", text: "K\u00e4ufer-NPC: Qualit\u00e4t aus Metadata lesen \u2192 Preis berechnen \u2192 Anzeige VOR Best\u00e4tigung", done: false },
+      { id: "19.13", text: "NUI-Feedback: Hover \u00fcber Farming-Item zeigt Qualit\u00e4ts-Badge + Restzeit", done: false },
+      { id: "19.14", text: "Balancing-Config in separater shared/config.lua: Alle Werte editierbar", done: false },
+      { id: "19.15", text: "Anti-Exploit: collected_at ausschlie\u00dflich serverseitig gesetzt", done: false },
+      { id: "19.16", text: "Test Weed-Route komplett: Sammeln \u2192 Verarbeiten \u2192 Verkaufen \u2192 Preis korrekt", done: false },
+      { id: "19.17", text: "Test Kokain-Route komplett: identischer Flow", done: false },
+      { id: "19.18", text: "Test alle 4 Gr\u00fcngeld-Routen: Gurke, Zwiebel, Paprika, M\u00f6hre", done: false },
+      { id: "19.19", text: "Test Verschimmelt-Edge-Case: 5+ Tage alt \u2192 30\u201350% Output", done: false },
+      { id: "19.20", text: "Balancing-Review: Preisstufen fair vs andere Einkommensquellen?", done: false }
+    ]
+  },
+  {
+    id: 20,
+    title: "Maldito Farming \u2014 Inaktives Sammeln & Boden-Drop-System",
+    assignee: "ZAYN",
+    tags: ["LUA", "OX_INVENTORY", "NUI", "NETWORKSYNC", "QBCORE"],
+    status: "OFFEN",
+    subtasks: [
+      { id: "20.1", text: "Inventory-Voll-Detection: Serverseitig Kapazit\u00e4t pr\u00fcfen vor AddItem", done: false },
+      { id: "20.2", text: "Overflow-Logik: \u00dcbersch\u00fcssige Items als World-Drop auf Spieler-Koordinaten", done: false },
+      { id: "20.3", text: "Partial-Drop: Restkapazit\u00e4t f\u00fcllen, nur \u00dcberschuss auf Boden", done: false },
+      { id: "20.4", text: "DB-Schema: mc_ground_items (drop_id UUID, item_type, quantity, quality_metadata, dropped_at, coords, expires_at)", done: false },
+      { id: "20.5", text: "Prop-Spawn: Passendes visuelles Prop je Item-Typ (Prop-Hash-Mapping in Config)", done: false },
+      { id: "20.6", text: "Netzwerk-Sync: Drop-Prop f\u00fcr ALLE Spieler in Reichweite sichtbar", done: false },
+      { id: "20.7", text: "Mehrfach-Drops: Leicht versetzter Spawn (\u00b10.5\u20131.5m random Offset)", done: false },
+      { id: "20.8", text: "Interaktion: Jeder Spieler kann Prop aufheben (ox_target) \u2014 bekommt Items mit Original-Metadata", done: false },
+      { id: "20.9", text: "Race-Condition-Schutz: Serverseitiger Lock pro drop_id beim Pickup", done: false },
+      { id: "20.10", text: "Qualit\u00e4ts-Vererbung: Aufgehobenes Item beh\u00e4lt collected_at aus Todo 19", done: false },
+      { id: "20.11", text: "60-Minuten-Timer: Serverseitiger Cleanup \u2014 Drop aus DB l\u00f6schen, Prop despawnen", done: false },
+      { id: "20.12", text: "Resync beim Join: Neue Spieler sehen alle aktiven Ground-Drops", done: false },
+      { id: "20.13", text: "Notification an Dropper: 'Inventory voll \u2014 Xkg auf Boden, verschwinden in 60min'", done: false },
+      { id: "20.14", text: "Test: Inventory voll \u2192 Overflow \u2192 zweiter Spieler sieht Prop \u2192 hebt auf \u2192 korrekte Metadata", done: false },
+      { id: "20.15", text: "Test: 60-Min-Ablauf simulieren \u2192 Prop despawnt \u2192 DB-Eintrag gel\u00f6scht", done: false },
+      { id: "20.16", text: "Test: Server-Restart \u2192 alle g\u00fcltigen Drops wieder sichtbar (Resync aus DB)", done: false }
+    ]
+  }
+];
+
+// ========== STATE MANAGEMENT (v2) ==========
+const STORAGE_KEY   = 'malditodo_v2';
+const LEGACY_STATE  = 'malditodo_state';
+const LEGACY_CUSTOM = 'malditodo_custom';
+const NOTES_KEY     = 'malditodo_notes';
+const LAUNCH_KEY    = 'malditodo_launch';
+const LABEL_KEY     = 'malditodo_label';
+const HEADING_KEY   = 'malditodo_heading';
+const DEFAULT_LAUNCH  = "2026-06-30T20:00:00+02:00";
+const DEFAULT_LABEL   = "Maldito City";
+const DEFAULT_HEADING = "LAUNCH COUNTDOWN";
+function loadLaunch() {
+  const s = localStorage.getItem(LAUNCH_KEY);
+  const d = new Date(s || DEFAULT_LAUNCH);
+  return isNaN(d.getTime()) ? new Date(DEFAULT_LAUNCH) : d;
+}
+let LAUNCH = loadLaunch();
+function applyHeaderTexts() {
+  document.getElementById('logo-label').textContent   = localStorage.getItem(LABEL_KEY)   || DEFAULT_LABEL;
+  document.getElementById('logo-heading').textContent = localStorage.getItem(HEADING_KEY) || DEFAULT_HEADING;
+}
+
+function loadNotes() { try { return JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; } catch(e) { return {}; } }
+function saveNotes(n) { localStorage.setItem(NOTES_KEY, JSON.stringify(n)); }
+let subtaskNotes = loadNotes();
+let openNotes = new Set();
+
+function cloneDefaults() { return JSON.parse(JSON.stringify(DEFAULT_TODOS)); }
+
+// One-time migration: old v1 keys -> single v2 array (keeps progress)
+function migrateLegacy() {
+  let state = cloneDefaults();
+  const saved = localStorage.getItem(LEGACY_STATE);
+  if (saved) {
+    try {
+      const sv = JSON.parse(saved);
+      state = state.map(d => {
+        const s = sv.find(x => x.id === d.id);
+        if (s) {
+          if (s.status) d.status = s.status;
+          d.subtasks = d.subtasks.map(ds => {
+            const ss = s.subtasks ? s.subtasks.find(z => z.id === ds.id) : null;
+            if (ss) ds.done = ss.done;
+            return ds;
+          });
+        }
+        return d;
+      });
+    } catch(e) {}
+  }
+  const cr = localStorage.getItem(LEGACY_CUSTOM);
+  if (cr) { try { state = state.concat(JSON.parse(cr)); } catch(e) {} }
+  return state;
+}
+
+function loadState() {
+  const v2 = localStorage.getItem(STORAGE_KEY);
+  if (v2) { try { const a = JSON.parse(v2); if (Array.isArray(a)) return a; } catch(e) {} }
+  const migrated = (localStorage.getItem(LEGACY_STATE) || localStorage.getItem(LEGACY_CUSTOM))
+    ? migrateLegacy() : cloneDefaults();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+  return migrated;
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
+
+let todos = loadState();
+let activeFilter = 'ALLE';
+let expandedCards = new Set();
+let editingSub = null;   // sub.id being inline-edited
+let editingId  = null;   // todo.id being edited in modal
+
+// ========== GROUPS ==========
+const GROUPS_KEY = 'malditodo_groups';
+const DEFAULT_GROUPS = ['Scripts', 'Discord', 'Web', 'Sonstige'];
+function loadGroups() {
+  const s = localStorage.getItem(GROUPS_KEY);
+  if (s) { try { const a = JSON.parse(s); if (Array.isArray(a) && a.length) return a; } catch(e) {} }
+  return DEFAULT_GROUPS.slice();
+}
+function saveGroups() { localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); }
+let groups = loadGroups();
+const SEED_GROUPS = { 4: 'Web', 9: 'Web', 10: 'Discord' };  // sinnvolle Vorbelegung der Default-Todos
+function groupOf(t) { return t.group || SEED_GROUPS[t.id] || (typeof t.id === 'number' && t.id <= 20 ? 'Scripts' : 'Sonstige'); }
+
+// ========== PRIORITY / SEARCH ==========
+const PRIOS = [['hoch', 'Hoch'], ['mittel', 'Mittel'], ['niedrig', 'Niedrig']];
+function prioOf(t) { return t.prio || 'mittel'; }
+function prioRank(p) { return p === 'hoch' ? 0 : p === 'mittel' ? 1 : 2; }
+let searchQuery = '';
+
+// ========== MODAL PILL STATE ==========
+let mAssignee = 'ZAYN', mTags = [], mGroup = 'Scripts', mPrio = 'mittel', mDue = '';
+function renderPrioPills() {
+  const el = document.getElementById('prio-pills');
+  el.innerHTML = PRIOS.map(p =>
+    '<button type="button" class="pill' + (mPrio === p[0] ? ' selected' : '') + '" data-prio="' + p[0] + '">' +
+    '<span class="prio-dot ' + p[0] + '"></span>' + p[1] + '</button>').join('');
+  el.querySelectorAll('[data-prio]').forEach(b => b.onclick = () => { mPrio = b.dataset.prio; renderPrioPills(); });
+}
+function renderAssigneePills() {
+  const el = document.getElementById('assignee-pills');
+  el.innerHTML = ['ZAYN', 'VITO', 'BEIDE'].map(a =>
+    '<button type="button" class="pill' + (mAssignee === a ? ' selected' : '') + '" data-asg="' + a + '">' + a + '</button>').join('');
+  el.querySelectorAll('[data-asg]').forEach(b => b.onclick = () => { mAssignee = b.dataset.asg; renderAssigneePills(); });
+}
+function renderGroupPills() {
+  const el = document.getElementById('group-pills');
+  el.innerHTML = groups.map(g =>
+    '<button type="button" class="pill' + (mGroup === g ? ' selected' : '') + '" data-grp="' + escapeAttr(g) + '">' + escapeHtml(g) + '</button>').join('');
+  el.querySelectorAll('[data-grp]').forEach(b => b.onclick = () => { mGroup = b.dataset.grp; renderGroupPills(); });
+}
+function renderTagPills() {
+  const el = document.getElementById('tag-pills');
+  el.innerHTML = mTags.length
+    ? mTags.map(t => '<span class="pill removable">' + escapeHtml(t) + '<span class="pill-x" data-tagrm="' + escapeAttr(t) + '">&times;</span></span>').join('')
+    : '<span class="pill-empty">keine</span>';
+  el.querySelectorAll('[data-tagrm]').forEach(x => x.onclick = () => { mTags = mTags.filter(t => t !== x.dataset.tagrm); renderTagPills(); });
+}
+function renderModalPills() { renderAssigneePills(); renderPrioPills(); renderGroupPills(); renderTagPills(); }
+function addTagFromInput() {
+  const inp = document.getElementById('tag-add-input');
+  inp.value.split(',').map(t => t.trim().toUpperCase()).filter(Boolean).forEach(t => { if (!mTags.includes(t)) mTags.push(t); });
+  inp.value = ''; renderTagPills();
+}
+function addGroupFromInput() {
+  const inp = document.getElementById('group-add-input');
+  const v = inp.value.trim();
+  if (v) { if (!groups.includes(v)) { groups.push(v); saveGroups(); } mGroup = v; inp.value = ''; renderGroupPills(); }
+}
+
+// ========== STATUS — auto-derived from subtasks ==========
+function computeStatus(todo) {
+  if (!todo.subtasks || todo.subtasks.length === 0) return todo.status || 'OFFEN';
+  const done = todo.subtasks.filter(s => s.done).length;
+  if (done === 0) return 'OFFEN';
+  if (done === todo.subtasks.length) return 'DONE';
+  return 'IN ARBEIT';
+}
+function syncStatuses() { todos.forEach(t => { t.status = computeStatus(t); }); }
+
+// ========== COUNTDOWN ==========
+function updateCountdown() {
+  const header = document.getElementById('header');
+  const now = new Date();
+  const diff = LAUNCH - now;
+  if (diff <= 0) { header.classList.add('expired'); header.classList.remove('urgent'); return; }
+  header.classList.remove('expired');
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff / (1000*60*60)) % 24);
+  const minutes = Math.floor((diff / (1000*60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+  document.getElementById('cd-days').textContent = String(days).padStart(2,'0');
+  document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('cd-minutes').textContent = String(minutes).padStart(2,'0');
+  document.getElementById('cd-seconds').textContent = String(seconds).padStart(2,'0');
+  if (diff / (1000*60*60) < 48) header.classList.add('urgent'); else header.classList.remove('urgent');
+  document.getElementById('cd-sub').textContent = Math.floor(diff / (1000*60*60)) + ' Stunden bis Launch';
+}
+
+// ========== PROGRESS — subtask-weighted ==========
+function updateProgress() {
+  let units = 0, doneUnits = 0, totalSubs = 0, doneSubs = 0, doneTodos = 0;
+  todos.forEach(t => {
+    if (t.subtasks && t.subtasks.length) {
+      const d = t.subtasks.filter(s => s.done).length;
+      units += t.subtasks.length; doneUnits += d;
+      totalSubs += t.subtasks.length; doneSubs += d;
+    } else {
+      units += 1; if (t.status === 'DONE') doneUnits += 1;
+    }
+    if (computeStatus(t) === 'DONE') doneTodos++;
+  });
+  const pct = units > 0 ? Math.round(doneUnits / units * 100) : 0;
+  document.getElementById('progress-stats').textContent = pct + '%  ·  ' + doneTodos + '/' + todos.length + ' Todos';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-sub').textContent = doneSubs + ' / ' + totalSubs + ' Sub-Tasks erledigt';
+}
+
+// ========== RENDER ==========
+function getStatusClass(s) { if (s === 'OFFEN') return 'status-offen'; if (s === 'IN ARBEIT') return 'status-arbeit'; return 'status-done'; }
+function getAssigneeClass(a) { if (a === 'ZAYN') return 'assignee-zayn'; if (a === 'VITO') return 'assignee-vito'; return 'assignee-beide'; }
+
+function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text == null ? '' : text; return d.innerHTML; }
+function escapeAttr(text) { return String(text == null ? '' : text).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function fmtDue(s) { const p = s.split('-'); return p[2] + '.' + p[1] + '.'; }
+
+function passesFilter(todo) {
+  if (activeFilter === 'OFFEN' && todo.status !== 'OFFEN') return false;
+  if (activeFilter === 'IN ARBEIT' && todo.status !== 'IN ARBEIT') return false;
+  if (activeFilter === 'DONE' && todo.status !== 'DONE') return false;
+  if (activeFilter === 'ZAYN' && todo.assignee !== 'ZAYN' && todo.assignee !== 'BEIDE') return false;
+  if (activeFilter === 'VITO' && todo.assignee !== 'VITO' && todo.assignee !== 'BEIDE') return false;
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    const hay = (todo.title + ' ' + (todo.tags || []).join(' ') + ' ' + groupOf(todo) + ' ' +
+      todo.subtasks.map(s => s.text).join(' ')).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+function renderTodos() {
+  syncStatuses();
+  const list = document.getElementById('todo-list');
+  list.innerHTML = '';
+  // bucket visible todos by group, preserving original index
+  const buckets = {};
+  todos.forEach((t, idx) => { if (!passesFilter(t)) return; const g = groupOf(t); (buckets[g] = buckets[g] || []).push(idx); });
+  const order = groups.slice();
+  Object.keys(buckets).forEach(g => { if (!order.includes(g)) order.push(g); });
+  order.forEach(g => {
+    const idxs = buckets[g];
+    if (!idxs || !idxs.length) return;
+    idxs.sort((a, b) => prioRank(prioOf(todos[a])) - prioRank(prioOf(todos[b])));  // Hoch zuerst
+    const head = document.createElement('div');
+    head.className = 'group-head';
+    head.innerHTML = '<span class="group-name">' + escapeHtml(g) + '</span><span class="group-count">' + idxs.length + '</span>';
+    list.appendChild(head);
+    idxs.forEach(idx => list.appendChild(buildCard(todos[idx], idx)));
+  });
+  bindCardEvents();
+  updateProgress();
+  saveState();
+}
+
+function buildCard(todo, idx) {
+    const totalSubs = todo.subtasks.length;
+    const doneSubs = todo.subtasks.filter(s => s.done).length;
+    const subPct = totalSubs > 0 ? Math.round(doneSubs / totalSubs * 100) : (todo.status === 'DONE' ? 100 : 0);
+
+    const card = document.createElement('div');
+    const isExpanded = expandedCards.has(todo.id);
+    card.className = 'todo-card' + (isExpanded ? ' expanded' : '');
+    card.dataset.status = todo.status;
+    card.dataset.id = todo.id;
+
+    const checkSvg = '<svg class="subtask-check-mark" viewBox="0 0 8 8" fill="none"><path d="M1 4L3 6L7 2" stroke="#F5F0E8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    let subtasksHtml = '';
+    todo.subtasks.forEach((sub, si) => {
+      const noteVal = subtaskNotes[sub.id] || '';
+      const hasNotes = noteVal.trim().length > 0;
+      const isOpen = openNotes.has(sub.id);
+      const textCell = (editingSub === sub.id)
+        ? '<input class="subtask-text-input" data-edit-input="' + sub.id + '" value="' + escapeAttr(sub.text) + '">'
+        : '<span class="subtask-text">' + escapeHtml(sub.text) + '</span>';
+      subtasksHtml +=
+        '<div class="subtask-row">' +
+          '<div class="subtask-item' + (sub.done ? ' done' : '') + '" data-todo="' + idx + '" data-sub="' + si + '">' +
+            '<span class="subtask-id">' + sub.id + '</span>' +
+            '<div class="subtask-check">' + checkSvg + '</div>' +
+            textCell +
+            '<button class="subtask-copy-btn" data-copy-text="' + escapeAttr(sub.text + (noteVal ? '\n\n' + noteVal : '')) + '" title="Kopieren"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M7 3V2C7 1.45 6.55 1 6 1H2C1.45 1 1 1.45 1 2V6C1 6.55 1.45 7 2 7H3" stroke="currentColor" stroke-width="1.2"/></svg></button>' +
+            '<button class="subtask-edit-btn" data-edit-sub="' + todo.id + '|' + sub.id + '" title="Bearbeiten">&#9998;</button>' +
+            '<button class="subtask-info-btn' + (hasNotes ? ' has-notes' : '') + '" data-note-id="' + sub.id + '" title="Notizen">i</button>' +
+            '<button class="subtask-del-btn" data-del-sub="' + todo.id + '|' + sub.id + '" title="Loeschen">&times;</button>' +
+          '</div>' +
+          '<div class="subtask-notes' + (isOpen ? ' open' : '') + '" data-notes-for="' + sub.id + '">' +
+            '<textarea placeholder="Details, Notizen, Links..." data-note-input="' + sub.id + '">' + escapeHtml(noteVal) + '</textarea>' +
+            '<div class="subtask-notes-hint">Auto-Save</div>' +
+          '</div>' +
+        '</div>';
+    });
+    subtasksHtml +=
+      '<div class="subtask-add-row">' +
+        '<input class="subtask-add-input" data-add-sub="' + todo.id + '" placeholder="+ Sub-Task hinzufuegen...">' +
+        '<button class="subtask-add-btn" data-add-sub-btn="' + todo.id + '">ADD</button>' +
+      '</div>';
+
+    let tagsHtml = '';
+    todo.tags.forEach(tag => { tagsHtml += '<span class="tag">[' + escapeHtml(tag) + ']</span>'; });
+
+    const statusAuto = totalSubs > 0;
+    const prio = prioOf(todo);
+    const over = todo.due && todo.status !== 'DONE' && todo.due < todayStr();
+    const dueHtml = todo.due ? '<span class="due-chip' + (over ? ' over' : '') + '" title="Deadline ' + todo.due + '">' + (over ? '⚠ ' : '') + fmtDue(todo.due) + '</span>' : '';
+    card.innerHTML =
+      '<div class="card-header" data-toggle="' + idx + '">' +
+        '<span class="prio-dot ' + prio + '" title="Priorität: ' + prio + '"></span>' +
+        '<div class="card-number">' + String(todo.id).padStart(2,'0') + '</div>' +
+        '<div class="card-title-wrap">' +
+          '<div class="card-title">' + escapeHtml(todo.title) + '</div>' +
+          '<div class="card-tags">' + tagsHtml + '</div>' +
+        '</div>' +
+        '<div class="card-meta">' +
+          dueHtml +
+          '<button class="edit-todo-btn" data-edit="' + idx + '" title="Todo bearbeiten">EDIT</button>' +
+          '<button class="delete-todo-btn" data-delete="' + idx + '" title="Todo loeschen">DEL</button>' +
+          '<span class="assignee-badge ' + getAssigneeClass(todo.assignee) + '">' + todo.assignee + '</span>' +
+          '<span class="status-badge ' + getStatusClass(todo.status) + (statusAuto ? ' auto' : '') + '" data-status="' + idx + '" title="' + (statusAuto ? 'Automatisch aus Sub-Tasks' : 'Klicken zum Wechseln') + '">' + todo.status + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="card-progress">' +
+          '<div class="card-progress-bar"><div class="card-progress-fill" style="width:' + subPct + '%"></div></div>' +
+          '<span class="card-progress-text">' + doneSubs + ' / ' + totalSubs + '</span>' +
+        '</div>' +
+        '<div class="subtask-list">' + subtasksHtml + '</div>' +
+      '</div>' +
+      '<div class="collapse-toggle" data-toggle="' + idx + '"><div class="collapse-arrow"></div></div>';
+
+    return card;
+}
+
+// ========== EVENT BINDING ==========
+function bindCardEvents() {
+  // Expand / collapse
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target.closest('button') || e.target.closest('.status-badge')) return;
+      const card = this.closest('.todo-card');
+      const id = parseInt(card.dataset.id);
+      card.classList.toggle('expanded');
+      if (card.classList.contains('expanded')) expandedCards.add(id); else expandedCards.delete(id);
+    });
+  });
+
+  // Status badge — manual cycle only when no subtasks
+  document.querySelectorAll('.status-badge[data-status]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const idx = parseInt(this.dataset.status);
+      if (todos[idx].subtasks && todos[idx].subtasks.length) return; // auto-managed
+      const states = ['OFFEN', 'IN ARBEIT', 'DONE'];
+      todos[idx].status = states[(states.indexOf(todos[idx].status) + 1) % 3];
+      saveState(); renderTodos();
+    });
+  });
+
+  // Subtask toggle done
+  document.querySelectorAll('.subtask-item').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target.closest('button') || e.target.closest('.subtask-text-input')) return;
+      const ti = parseInt(this.dataset.todo), si = parseInt(this.dataset.sub);
+      todos[ti].subtasks[si].done = !todos[ti].subtasks[si].done;
+      saveState(); renderTodos();
+    });
+  });
+
+  // Copy
+  document.querySelectorAll('.subtask-copy-btn').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      navigator.clipboard.writeText(this.dataset.copyText).then(() => {
+        this.classList.add('copied'); setTimeout(() => this.classList.remove('copied'), 1200);
+      });
+    });
+  });
+
+  // Notes panel toggle
+  document.querySelectorAll('.subtask-info-btn').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = this.dataset.noteId;
+      const panel = document.querySelector('[data-notes-for="' + id + '"]');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) { openNotes.add(id); panel.querySelector('textarea').focus(); }
+      else openNotes.delete(id);
+    });
+  });
+
+  // Notes auto-save
+  document.querySelectorAll('[data-note-input]').forEach(el => {
+    let timer;
+    el.addEventListener('input', function() {
+      clearTimeout(timer);
+      const id = this.dataset.noteInput, val = this.value;
+      timer = setTimeout(() => {
+        subtaskNotes[id] = val; saveNotes(subtaskNotes);
+        const btn = document.querySelector('[data-note-id="' + id + '"]');
+        if (btn) btn.classList.toggle('has-notes', val.trim().length > 0);
+      }, 300);
+    });
+    el.addEventListener('click', e => e.stopPropagation());
+  });
+
+  // Subtask inline edit — start
+  document.querySelectorAll('[data-edit-sub]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      editingSub = this.dataset.editSub.split('|')[1];
+      renderTodos();
+      const inp = document.querySelector('[data-edit-input="' + editingSub + '"]');
+      if (inp) { inp.focus(); inp.select(); }
+    });
+  });
+  // Subtask inline edit — input handlers
+  document.querySelectorAll('[data-edit-input]').forEach(el => {
+    el.addEventListener('click', e => e.stopPropagation());
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); commitSubEdit(this.dataset.editInput, this.value); }
+      else if (e.key === 'Escape') { editingSub = null; renderTodos(); }
+    });
+    el.addEventListener('blur', function() { if (editingSub) commitSubEdit(this.dataset.editInput, this.value); });
+  });
+
+  // Subtask delete
+  document.querySelectorAll('[data-del-sub]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const parts = this.dataset.delSub.split('|'), tid = parts[0], sid = parts[1];
+      const t = todos.find(x => String(x.id) === tid);
+      if (!t) return;
+      t.subtasks = t.subtasks.filter(s => s.id !== sid);
+      if (subtaskNotes[sid]) { delete subtaskNotes[sid]; saveNotes(subtaskNotes); }
+      saveState(); renderTodos();
+    });
+  });
+
+  // Subtask add
+  document.querySelectorAll('[data-add-sub-btn]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const tid = this.dataset.addSubBtn;
+      const inp = document.querySelector('[data-add-sub="' + tid + '"]');
+      addSubtask(tid, inp ? inp.value : '');
+    });
+  });
+  document.querySelectorAll('[data-add-sub]').forEach(el => {
+    el.addEventListener('click', e => e.stopPropagation());
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); addSubtask(this.dataset.addSub, this.value); }
+    });
+  });
+
+  // Edit todo (modal)
+  document.querySelectorAll('[data-edit]').forEach(el => {
+    el.addEventListener('click', function(e) { e.stopPropagation(); openEdit(parseInt(this.dataset.edit)); });
+  });
+
+  // Delete todo (any)
+  document.querySelectorAll('[data-delete]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const idx = parseInt(this.dataset.delete);
+      const t = todos[idx];
+      if (confirm('Todo "' + t.title + '" wirklich loeschen?')) {
+        t.subtasks.forEach(s => { if (subtaskNotes[s.id]) delete subtaskNotes[s.id]; });
+        saveNotes(subtaskNotes);
+        todos.splice(idx, 1); saveState(); renderTodos();
+      }
+    });
+  });
+}
+
+function commitSubEdit(subId, val) {
+  val = (val || '').trim();
+  for (const t of todos) {
+    const s = t.subtasks.find(x => x.id === subId);
+    if (s) { if (val) s.text = val; break; }
+  }
+  editingSub = null; saveState(); renderTodos();
+}
+
+function addSubtask(tid, text) {
+  text = (text || '').trim();
+  if (!text) return;
+  const t = todos.find(x => String(x.id) === String(tid));
+  if (!t) return;
+  let max = 0;
+  t.subtasks.forEach(s => { const n = parseInt(String(s.id).split('.')[1] || '0'); if (n > max) max = n; });
+  t.subtasks.push({ id: t.id + '.' + (max + 1), text: text, done: false });
+  expandedCards.add(t.id);
+  saveState(); renderTodos();
+}
+
+// ========== FILTER ==========
+document.getElementById('filter-bar').addEventListener('click', function(e) {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.filter;
+  renderTodos();
+});
+
+// ========== ADD / EDIT MODAL ==========
+function openEdit(idx) {
+  const t = todos[idx];
+  editingId = t.id;
+  document.getElementById('add-modal-title').textContent = 'Todo bearbeiten';
+  document.getElementById('add-submit').textContent = 'Speichern';
+  document.getElementById('subtasks-group').style.display = 'none';
+  document.getElementById('new-title').value = t.title;
+  mAssignee = t.assignee; mTags = (t.tags || []).slice(); mGroup = groupOf(t);
+  mPrio = prioOf(t); mDue = t.due || '';
+  document.getElementById('new-due').value = mDue;
+  if (!groups.includes(mGroup)) { groups.push(mGroup); saveGroups(); }
+  renderModalPills();
+  document.getElementById('new-title').style.borderColor = '#2d2d2d';
+  document.getElementById('add-modal').classList.add('active');
+  document.getElementById('new-title').focus();
+}
+
+document.getElementById('add-btn').addEventListener('click', function() {
+  clearAddForm();
+  document.getElementById('add-modal').classList.add('active');
+  document.getElementById('new-title').focus();
+});
+document.getElementById('add-cancel').addEventListener('click', function() {
+  document.getElementById('add-modal').classList.remove('active'); clearAddForm();
+});
+document.getElementById('add-modal').addEventListener('click', function(e) {
+  if (e.target === this) { this.classList.remove('active'); clearAddForm(); }
+});
+
+document.getElementById('add-submit').addEventListener('click', function() {
+  const title = document.getElementById('new-title').value.trim();
+  if (!title) { document.getElementById('new-title').style.borderColor = '#8B1A1A'; return; }
+  // pull any half-typed tag still in the input
+  if (document.getElementById('tag-add-input').value.trim()) addTagFromInput();
+  const assignee = mAssignee, tags = mTags.slice(), group = mGroup, prio = mPrio;
+  const due = document.getElementById('new-due').value || null;
+
+  if (editingId !== null) {
+    const t = todos.find(x => x.id === editingId);
+    if (t) { t.title = title; t.assignee = assignee; t.tags = tags; t.group = group; t.prio = prio; t.due = due; }
+    saveState(); renderTodos();
+    document.getElementById('add-modal').classList.remove('active'); clearAddForm();
+    return;
+  }
+
+  const subsRaw = document.getElementById('new-subtasks').value.trim();
+  const subLines = subsRaw ? subsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [];
+  const maxId = todos.reduce((m, t) => Math.max(m, t.id), 0);
+  const newId = maxId + 1;
+  const subtasks = subLines.map((text, i) => ({ id: newId + '.' + (i + 1), text: text, done: false }));
+  todos.push({ id: newId, title: title, assignee: assignee, tags: tags, group: group, prio: prio, due: due, status: 'OFFEN', subtasks: subtasks });
+  saveState(); renderTodos();
+  document.getElementById('add-modal').classList.remove('active'); clearAddForm();
+  setTimeout(() => { const c = document.querySelector('[data-id="' + newId + '"]'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+});
+
+function clearAddForm() {
+  editingId = null;
+  document.getElementById('add-modal-title').textContent = 'Neues Todo';
+  document.getElementById('add-submit').textContent = 'Erstellen';
+  document.getElementById('subtasks-group').style.display = '';
+  document.getElementById('new-title').value = '';
+  document.getElementById('new-title').style.borderColor = '#2d2d2d';
+  document.getElementById('new-subtasks').value = '';
+  document.getElementById('tag-add-input').value = '';
+  document.getElementById('group-add-input').value = '';
+  document.getElementById('new-due').value = '';
+  mAssignee = 'ZAYN'; mTags = []; mGroup = groups[0] || 'Scripts'; mPrio = 'mittel'; mDue = '';
+  renderModalPills();
+}
+
+// ===== search wiring =====
+document.getElementById('todo-search').addEventListener('input', function() {
+  searchQuery = this.value.trim();
+  document.getElementById('search-wrap').classList.toggle('has-q', !!searchQuery);
+  renderTodos();
+});
+document.getElementById('search-clear').addEventListener('click', function() {
+  searchQuery = '';
+  const i = document.getElementById('todo-search'); i.value = '';
+  document.getElementById('search-wrap').classList.remove('has-q');
+  renderTodos(); i.focus();
+});
+
+// pill add buttons / inputs
+document.getElementById('tag-add-btn').addEventListener('click', addTagFromInput);
+document.getElementById('tag-add-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); } });
+document.getElementById('group-add-btn').addEventListener('click', addGroupFromInput);
+document.getElementById('group-add-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addGroupFromInput(); } });
+
+// ========== EXPORT / IMPORT ==========
+document.getElementById('export-btn').addEventListener('click', function() {
+  const data = JSON.stringify({ todos: todos, notes: subtaskNotes }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'malditodo_export_' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', function() {
+  const f = this.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const raw = JSON.parse(e.target.result);
+      const imp = Array.isArray(raw) ? { todos: raw } : raw;
+      if (!imp.todos || !Array.isArray(imp.todos)) throw 0;
+      if (!confirm('Import ersetzt den aktuellen Stand (' + imp.todos.length + ' Todos). Fortfahren?')) return;
+      todos = imp.todos;
+      if (imp.notes && typeof imp.notes === 'object') { subtaskNotes = imp.notes; saveNotes(subtaskNotes); }
+      expandedCards.clear(); openNotes.clear();
+      saveState(); renderTodos();
+    } catch(err) { alert('Ungueltige JSON-Datei.'); }
+  };
+  r.readAsText(f);
+  this.value = '';
+});
+
+// ========== RESET (double-click footer) ==========
+let resetClickCount = 0, resetTimer = null;
+document.getElementById('footer-logo').addEventListener('click', function() {
+  resetClickCount++;
+  if (resetClickCount === 1) resetTimer = setTimeout(() => { resetClickCount = 0; }, 400);
+  if (resetClickCount >= 2) { clearTimeout(resetTimer); resetClickCount = 0; document.getElementById('reset-modal').classList.add('active'); }
+});
+document.getElementById('reset-cancel').addEventListener('click', function() { document.getElementById('reset-modal').classList.remove('active'); });
+document.getElementById('reset-modal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
+document.getElementById('reset-confirm').addEventListener('click', function() {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LEGACY_STATE);
+  localStorage.removeItem(LEGACY_CUSTOM);
+  localStorage.removeItem(NOTES_KEY);
+  subtaskNotes = {}; openNotes.clear(); expandedCards.clear();
+  todos = cloneDefaults(); saveState(); renderTodos();
+  document.getElementById('reset-modal').classList.remove('active');
+});
+
+// ========== LAUNCH DATE EDIT ==========
+function toLocalInput(d) {
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+document.getElementById('launch-edit').addEventListener('click', function() {
+  document.getElementById('launch-input').value = toLocalInput(LAUNCH);
+  document.getElementById('launch-label').value   = localStorage.getItem(LABEL_KEY)   || DEFAULT_LABEL;
+  document.getElementById('launch-heading').value = localStorage.getItem(HEADING_KEY) || DEFAULT_HEADING;
+  document.getElementById('launch-modal').classList.add('active');
+});
+document.getElementById('launch-cancel').addEventListener('click', function() {
+  document.getElementById('launch-modal').classList.remove('active');
+});
+document.getElementById('launch-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('active');
+});
+document.getElementById('launch-save').addEventListener('click', function() {
+  const v = document.getElementById('launch-input').value;
+  if (v) { const d = new Date(v); if (!isNaN(d.getTime())) { LAUNCH = d; localStorage.setItem(LAUNCH_KEY, d.toISOString()); } }
+  const label   = document.getElementById('launch-label').value.trim();
+  const heading = document.getElementById('launch-heading').value.trim();
+  if (label)   localStorage.setItem(LABEL_KEY, label);   else localStorage.removeItem(LABEL_KEY);
+  if (heading) localStorage.setItem(HEADING_KEY, heading); else localStorage.removeItem(HEADING_KEY);
+  applyHeaderTexts();
+  document.getElementById('header').classList.remove('expired');
+  updateCountdown();
+  document.getElementById('launch-modal').classList.remove('active');
+});
+document.getElementById('launch-reset').addEventListener('click', function() {
+  localStorage.removeItem(LAUNCH_KEY);
+  localStorage.removeItem(LABEL_KEY);
+  localStorage.removeItem(HEADING_KEY);
+  LAUNCH = loadLaunch();
+  applyHeaderTexts();
+  document.getElementById('header').classList.remove('expired');
+  updateCountdown();
+  document.getElementById('launch-modal').classList.remove('active');
+});
+
+// ========== PAGE NAV (TODO / ROADMAP) ==========
+function showPage(which) {
+  const todo = which === 'todo';
+  document.getElementById('page-todo').classList.toggle('hidden-page', !todo);
+  document.getElementById('page-roadmap').classList.toggle('hidden-page', todo);
+  document.getElementById('nav-todo').classList.toggle('active', todo);
+  document.getElementById('nav-roadmap').classList.toggle('active', !todo);
+  if (!todo) renderRoadmap();
+  window.scrollTo(0, 0);
+}
+document.getElementById('nav-todo').addEventListener('click', () => showPage('todo'));
+document.getElementById('nav-roadmap').addEventListener('click', () => showPage('roadmap'));
+
+// ========== ROADMAP (flat cards, Phasen + Monate) ==========
+const ROADMAP_KEY  = 'malditodo_roadmap_v2';
+const RMVIEW_KEY   = 'malditodo_rmview';
+const LEGACY_RM    = 'malditodo_roadmap';
+const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DEFAULT_RM = {
+  phases: ['JETZT', 'BIS LAUNCH', 'NACH LAUNCH'],
+  extraMonths: [],
+  cards: [
+    { id: 'r1', title: 'Server-Setup & Ressourcen finalisieren', status: 'IN ARBEIT', phase: 'JETZT', month: null },
+    { id: 'r2', title: 'Anticheat scharf schalten', status: 'OFFEN', phase: 'JETZT', month: null },
+    { id: 'r3', title: 'Alle TODO-Punkte auf DONE', status: 'OFFEN', phase: 'BIS LAUNCH', month: '2026-06' },
+    { id: 'r4', title: 'Tebex-Store live', status: 'OFFEN', phase: 'BIS LAUNCH', month: '2026-06' },
+    { id: 'r5', title: 'Feedback sammeln & Patches', status: 'OFFEN', phase: 'NACH LAUNCH', month: '2026-07' }
+  ]
+};
+function loadRoadmap() {
+  const s = localStorage.getItem(ROADMAP_KEY);
+  if (s) { try { const o = JSON.parse(s); if (o && Array.isArray(o.cards)) { o.phases = o.phases || []; o.extraMonths = o.extraMonths || []; return o; } } catch(e) {} }
+  // migrate old nested format
+  const old = localStorage.getItem(LEGACY_RM);
+  if (old) {
+    try {
+      const arr = JSON.parse(old);
+      if (Array.isArray(arr)) {
+        const o = { phases: [], extraMonths: [], cards: [] };
+        arr.forEach(ph => { o.phases.push(ph.title); (ph.cards || []).forEach(c => o.cards.push({ id: c.id, title: c.title, status: c.status || 'OFFEN', phase: ph.title, month: null })); });
+        localStorage.setItem(ROADMAP_KEY, JSON.stringify(o));
+        return o;
+      }
+    } catch(e) {}
+  }
+  const d = JSON.parse(JSON.stringify(DEFAULT_RM));
+  localStorage.setItem(ROADMAP_KEY, JSON.stringify(d));
+  return d;
+}
+function saveRoadmap() { localStorage.setItem(ROADMAP_KEY, JSON.stringify(roadmap)); }
+let roadmap = loadRoadmap();
+let rmView = localStorage.getItem(RMVIEW_KEY) || 'phases';
+let editingRCard = null;
+
+// month helpers
+function nowMonthKey() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function launchMonthKey() { return LAUNCH.getFullYear() + '-' + String(LAUNCH.getMonth()+1).padStart(2,'0'); }
+function shiftMonthKey(key, delta) { let p = key.split('-'); let y = +p[0], m = (+p[1]) - 1 + delta; y += Math.floor(m/12); m = ((m%12)+12)%12; return y + '-' + String(m+1).padStart(2,'0'); }
+function monthLabel(key) { const p = key.split('-'); return MONTHS_DE[(+p[1])-1] + ' ' + p[0]; }
+function roadmapMonths() {
+  const set = new Set(roadmap.cards.filter(c => c.month).map(c => c.month));
+  roadmap.extraMonths.forEach(m => set.add(m));
+  let k = nowMonthKey();
+  for (let i = 0; i < 4; i++) { set.add(k); k = shiftMonthKey(k, 1); }
+  set.add(launchMonthKey());
+  return [...set].sort();
+}
+
+function rcardHtml(c, showMonth) {
+  const titleCell = (editingRCard === c.id)
+    ? '<input class="rcard-input" data-rc-input="' + c.id + '" value="' + escapeAttr(c.title) + '">'
+    : '<span class="rcard-title">' + escapeHtml(c.title) + '</span>';
+  const mv = showMonth
+    ? '<button class="rc-mv" data-rc-mshift="' + c.id + '|-1" title="Monat zurueck">&#8249;</button>' +
+      '<button class="rc-mv" data-rc-mshift="' + c.id + '|1" title="Monat vor">&#8250;</button>'
+    : '';
+  return '<div class="rcard" data-status="' + c.status + '">' +
+      titleCell +
+      '<span class="status-badge ' + getStatusClass(c.status) + '" data-rc-status="' + c.id + '" title="Status wechseln">' + c.status + '</span>' +
+      mv +
+      '<button class="subtask-edit-btn" data-rc-edit="' + c.id + '" title="Bearbeiten">&#9998;</button>' +
+      '<button class="subtask-del-btn" data-rc-del="' + c.id + '" title="Loeschen">&times;</button>' +
+    '</div>';
+}
+function rmSection(title, count, headExtra, cardsHtml, addSpec) {
+  return '<div class="phase">' +
+      '<div class="phase-head"><span class="phase-title">' + escapeHtml(title) + '</span><span class="phase-count">' + count + '</span>' + headExtra + '</div>' +
+      '<div class="phase-cards">' + cardsHtml +
+        '<div class="phase-add-row">' +
+          '<input class="phase-add-input" data-rm-add="' + escapeAttr(addSpec) + '" placeholder="+ Eintrag hinzufuegen...">' +
+          '<button class="phase-add-btn" data-rm-add-btn="' + escapeAttr(addSpec) + '">ADD</button>' +
+        '</div>' +
+      '</div></div>';
+}
+function renderRMByPhase() {
+  const list = document.getElementById('roadmap-list');
+  list.innerHTML = '';
+  const phases = roadmap.phases.slice();
+  roadmap.cards.forEach(c => { if (c.phase && !phases.includes(c.phase)) phases.push(c.phase); });
+  phases.forEach(ph => {
+    const cs = roadmap.cards.filter(c => (c.phase || '') === ph);
+    const headExtra = '<button class="edit-todo-btn" data-ph-edit="' + escapeAttr(ph) + '">EDIT</button><button class="delete-todo-btn" data-ph-del="' + escapeAttr(ph) + '">DEL</button>';
+    list.insertAdjacentHTML('beforeend', rmSection(ph, cs.length, headExtra, cs.map(c => rcardHtml(c, false)).join(''), 'phase:' + ph));
+  });
+}
+function renderRMByMonth() {
+  const list = document.getElementById('roadmap-list');
+  list.innerHTML = '';
+  const orphan = roadmap.cards.filter(c => !c.month);
+  if (orphan.length) list.insertAdjacentHTML('beforeend', rmSection('Ohne Monat', orphan.length, '', orphan.map(c => rcardHtml(c, true)).join(''), 'month:'));
+  roadmapMonths().forEach(mk => {
+    const cs = roadmap.cards.filter(c => c.month === mk);
+    list.insertAdjacentHTML('beforeend', rmSection(monthLabel(mk), cs.length, '', cs.map(c => rcardHtml(c, true)).join(''), 'month:' + mk));
+  });
+}
+function renderRoadmap() {
+  document.querySelectorAll('#rm-toggle button').forEach(b => b.classList.toggle('active', b.dataset.rv === rmView));
+  if (rmView === 'months') renderRMByMonth(); else renderRMByPhase();
+  bindRoadmapEvents();
+}
+document.getElementById('rm-toggle').addEventListener('click', function(e) {
+  const b = e.target.closest('button'); if (!b) return;
+  rmView = b.dataset.rv; localStorage.setItem(RMVIEW_KEY, rmView); renderRoadmap();
+});
+
+function findRCard(id) { return roadmap.cards.find(c => c.id === id); }
+function bindRoadmapEvents() {
+  document.querySelectorAll('[data-rc-status]').forEach(el => el.addEventListener('click', function() {
+    const c = findRCard(this.dataset.rcStatus); if (!c) return;
+    const states = ['OFFEN', 'IN ARBEIT', 'DONE'];
+    c.status = states[(states.indexOf(c.status) + 1) % 3]; saveRoadmap(); renderRoadmap();
+  }));
+  document.querySelectorAll('[data-rc-edit]').forEach(el => el.addEventListener('click', function() {
+    editingRCard = this.dataset.rcEdit; renderRoadmap();
+    const inp = document.querySelector('[data-rc-input="' + editingRCard + '"]'); if (inp) { inp.focus(); inp.select(); }
+  }));
+  document.querySelectorAll('[data-rc-input]').forEach(el => {
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); commitRCard(this.dataset.rcInput, this.value); }
+      else if (e.key === 'Escape') { editingRCard = null; renderRoadmap(); }
+    });
+    el.addEventListener('blur', function() { if (editingRCard) commitRCard(this.dataset.rcInput, this.value); });
+  });
+  document.querySelectorAll('[data-rc-del]').forEach(el => el.addEventListener('click', function() {
+    roadmap.cards = roadmap.cards.filter(c => c.id !== this.dataset.rcDel); saveRoadmap(); renderRoadmap();
+  }));
+  document.querySelectorAll('[data-rc-mshift]').forEach(el => el.addEventListener('click', function() {
+    const p = this.dataset.rcMshift.split('|'); const c = findRCard(p[0]); if (!c) return;
+    c.month = shiftMonthKey(c.month || nowMonthKey(), +p[1]); saveRoadmap(); renderRoadmap();
+  }));
+  document.querySelectorAll('[data-rm-add-btn]').forEach(el => el.addEventListener('click', function() {
+    const inp = document.querySelector('[data-rm-add="' + cssEsc(this.dataset.rmAddBtn) + '"]');
+    addRMCard(this.dataset.rmAddBtn, inp ? inp.value : '');
+  }));
+  document.querySelectorAll('[data-rm-add]').forEach(el => el.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); addRMCard(this.dataset.rmAdd, this.value); }
+  }));
+  document.querySelectorAll('[data-ph-edit]').forEach(el => el.addEventListener('click', function() {
+    const old = this.dataset.phEdit; const v = prompt('Phasen-Name:', old);
+    if (v && v.trim()) { const nn = v.trim(); roadmap.phases = roadmap.phases.map(p => p === old ? nn : p); roadmap.cards.forEach(c => { if (c.phase === old) c.phase = nn; }); saveRoadmap(); renderRoadmap(); }
+  }));
+  document.querySelectorAll('[data-ph-del]').forEach(el => el.addEventListener('click', function() {
+    const ph = this.dataset.phDel;
+    if (confirm('Phase "' + ph + '" inkl. Eintraege loeschen?')) { roadmap.phases = roadmap.phases.filter(p => p !== ph); roadmap.cards = roadmap.cards.filter(c => c.phase !== ph); saveRoadmap(); renderRoadmap(); }
+  }));
+}
+function cssEsc(s) { return String(s).replace(/"/g, '\\"'); }
+function commitRCard(id, val) {
+  val = (val || '').trim(); const c = findRCard(id); if (c && val) c.title = val;
+  editingRCard = null; saveRoadmap(); renderRoadmap();
+}
+function addRMCard(spec, text) {
+  text = (text || '').trim(); if (!text) return;
+  const i = spec.indexOf(':'); const type = spec.slice(0, i), val = spec.slice(i + 1);
+  const card = { id: 'r' + Date.now(), title: text, status: 'OFFEN', phase: null, month: null };
+  if (type === 'phase') { card.phase = val; }
+  else { card.month = val || null; card.phase = roadmap.phases[0] || null; }
+  roadmap.cards.push(card); saveRoadmap(); renderRoadmap();
+}
+document.getElementById('add-phase-btn').addEventListener('click', function() {
+  if (rmView === 'months') {
+    const v = prompt('Monat hinzufuegen (Format JJJJ-MM, z.B. 2026-08):', shiftMonthKey(launchMonthKey(), 1));
+    if (v && /^\d{4}-\d{2}$/.test(v.trim())) { if (!roadmap.extraMonths.includes(v.trim())) roadmap.extraMonths.push(v.trim()); saveRoadmap(); renderRoadmap(); }
+  } else {
+    const v = prompt('Name der neuen Phase:', 'NEUE PHASE');
+    if (v && v.trim()) { roadmap.phases.push(v.trim().toUpperCase()); saveRoadmap(); renderRoadmap(); }
+  }
+});
+
+// ========== KEYBOARD ==========
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('add-modal').classList.remove('active');
+    document.getElementById('reset-modal').classList.remove('active');
+    document.getElementById('launch-modal').classList.remove('active');
+  }
+});
+
+// ========== INIT ==========
+applyHeaderTexts();
+renderTodos();
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
