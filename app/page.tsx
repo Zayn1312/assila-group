@@ -100,8 +100,7 @@ export default function Home() {
           </div>
           <nav className="nav-links">
             <a href="#projects">Projects</a>
-            <a href="/hubspot">HubSpot</a>
-            <a
+            <
               href="https://github.com/Zayn1312"
               target="_blank"
               rel="noopener noreferrer"
